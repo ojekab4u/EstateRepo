@@ -34,17 +34,29 @@
 
     <div class="property-images">
         <!-- Main Image -->
-        <div class="main-image">
-            <img src="{{ property.main_image.url }}" alt="Main Image for {{ property.title }}">
-        </div>
-        
-        <!-- Carousel for Other Images -->
-        <div id="property-carousel" class="carousel slide" data-bs-ride="carousel">
-            <div class="carousel-inner">
+         {% if property.main_image %}
+         <div class="main-image">
+             <img src="{{ property.main_image.url }}" alt="Main Image for {{ property.title }}">
+            </div>
+            {% else %}
+            <div class="main-image">
+                <img src="{% static 'images/property-1.png'%}" alt="Main Image for {{ property.title }}">
+            </div>
+            
+            {% endif%}
+            <!-- Carousel for Other Images -->
+            <div id="property-carousel" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-inner">
                 {% for image in images %}
-                <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                    <img src="{{ image.image.url }}" alt="Image for {{ property.title }}">
-                </div>
+                {% if image %}
+                    <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                        <img src="{{ image.image.url }}" alt="Image for {{ property.title }}">
+                    </div>
+                {% else %}
+                    <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                        <img src="{% static 'images/property-2.png'%}" alt="Image for {{ property.title }}">
+                    </div>
+                {% endif%}
                 {% endfor %}
             </div>
             <!-- Carousel Controls -->
