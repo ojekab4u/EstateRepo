@@ -114,8 +114,6 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-# GOOGLE_API_KEY = os.environ.get('AAA_MAPS_API')
-# GOOGLE_API_KEY = config('GOOGLE_API_KEY')
 GOOGLE_API_KEY = config('GOOGLE_API_KEY')
 
 LANGUAGE_CODE = 'en-us'
