@@ -1,0 +1,171 @@
+
+
+{% load static %}
+ <!DOCTYPE html>
+<html lang="en">
+    
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ google_api_key }}&libraries=places"></script>
+
+    <script>
+        function initAutocomplete() {
+            const addressInput = document.getElementById('id_address'); // Assuming 'id_address' is the ID for your address field
+            const autocomplete = new google.maps.places.Autocomplete(addressInput);
+
+            autocomplete.setFields(['address_component', 'formatted_address', 'geometry', 'place_id']); // Include place_id
+
+            autocomplete.addListener('place_changed', function() {
+                const place = autocomplete.getPlace();
+                if (!place.geometry) {
+                    console.error("No details available for input: '" + addressInput.value + "'");
+                    return;
+                }
+
+                const placeId = place.place_id;
+
+                // Set the Place ID in the hidden input field
+                if (placeId) {
+                    document.getElementById('place_id').value = placeId;
+                }
+            });
+        }
+
+        window.addEventListener('load', initAutocomplete);
+    </script>
+        
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Property</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/create_property.css'%}">
+    <link rel="icon" type="image/png" href="{% static 'fav.png' %}">
+        
+
+  {% comment %} <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet"> {% endcomment %}
+</head>
+
+<body>
+
+    
+    <div class="container">
+        <h1>Create Property</h1>
+    
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li class="message {{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="title">Property Title</label>
+                {{ form.title }}
+            </div>
+    
+            <div class="form-group">
+                <label for="description">Description</label>
+                {{ form.description }}
+            </div>
+    
+            <div class="form-group">
+                <label for="address">Address</label>
+                {{ form.address }}
+            </div>
+    
+            <div class="form-group">
+                <label for="city">City</label>
+                {{ form.city }}
+            </div>
+    
+            <div class="form-group">
+                <label for="state">State</label>
+                {{ form.state }}
+            </div>
+    
+            <div class="form-group">
+                <label for="zip_code">Zip Code</label>
+                {{ form.zip_code }}
+            </div>
+    
+            <div class="form-group">
+                <label for="price">Price</label>
+                {{ form.price }}
+            </div>
+    
+            <!-- Property Type Selection -->
+            <div class="form-group">
+                <label for="property_type">Property Type</label>
+                {{ form.property_type }}
+            </div>
+    
+            <!-- Rent or Sale Selection -->
+            <div class="form-group">
+                <label for="sale_or_rent">Rent or Sale</label>
+                {{ form.sale_or_rent }}
+            </div>
+    
+            <div class="form-group">
+                <label for="bedrooms">Bedrooms</label>
+                {{ form.bedrooms }}
+            </div>
+    
+            <div class="form-group">
+                <label for="bathrooms">Bathrooms</label>
+                {{ form.bathrooms }}
+            </div>
+    
+            <div class="form-group">
+                <label for="square_feet">Square Feet</label>
+                {{ form.square_feet }}
+            </div>
+    
+            <div class="form-group">
+                <label for="main_image">Main Image</label>
+                {{ form.main_image }}
+            </div>
+    
+            <div class="form-group">
+                <label for="additional_images">Other Images</label>
+                <input type="file" name="additional_images" multiple>
+            </div>
+    
+            <!-- Hidden input to capture Place ID -->
+            <input type="hidden" id="place_id" name="place_id">
+    
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+    
+
+    {% comment %} <script>
+        function initAutocomplete() {
+            const addressInput = document.getElementById('id_address'); // Assuming 'id_address' is the ID for your address field
+            const autocomplete = new google.maps.places.Autocomplete(addressInput);
+
+            autocomplete.setFields(['address_component', 'formatted_address', 'geometry', 'place_id']); // Include place_id
+
+            autocomplete.addListener('place_changed', function() {
+                const place = autocomplete.getPlace();
+                if (!place.geometry) {
+                    console.error("No details available for input: '" + addressInput.value + "'");
+                    return;
+                }
+
+                const placeId = place.place_id;
+
+                // Set the Place ID in the hidden input field
+                if (placeId) {
+                    document.getElementById('place_id').value = placeId;
+                }
+            });
+        }
+
+        window.addEventListener('load', initAutocomplete);
+    </script> {% endcomment %}
+</body>
+
+</html>

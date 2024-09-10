@@ -1,0 +1,62 @@
+
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>about</title>
+    
+
+  <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+     <!-- 
+    - custom css link
+  -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/about.css'%}">
+   
+<link rel="icon" type="image/png" href="{% static 'fav.png' %}">
+</head>
+<body>
+    {% include "homeverse/nav.html" %}
+    <div class="about-section">
+        <h1>Who We Are</h1>
+        <p>Building Your Dreams with Excellence and Trust</p>
+        <div class="row">
+            <div class="column">
+                <h2>Our Mission</h2>
+                <p>We aim to make finding your dream property seamless and stress-free.</p>
+            </div>
+            <div class="column">
+                <h2>Our Story</h2>
+                <p>Established in [Year], our agency has been helping clients find homes they love for over [Number] years.</p>
+            </div>
+        </div>
+        <div class="team-section">
+            <h2>Meet Our Team</h2>
+            <div class="team">
+                <div class="team-member">
+                    <img src="team1.jpg" alt="Team Member 1">
+                    <h3>Jane Doe</h3>
+                    <p>CEO & Founder</p>
+                </div>
+                <div class="team-member">
+                    <img src="team2.jpg" alt="Team Member 2">
+                    <h3>John Smith</h3>
+                    <p>Head of Operations</p>
+                </div>
+                <!-- Add more team members -->
+            </div>
+        </div>
+        <div class="testimonials-section">
+            <h2>Client Testimonials</h2>
+            <p>"Homeverse helped us find our perfect home. They truly understood our needs!" - Client Name</p>
+            <p>"Professional, reliable, and efficient. Highly recommend!" - Client Name</p>
+        </div>
+    </div>
+    
+    {% include "homeverse/footer.html" %}
+
+</body>
+</html>

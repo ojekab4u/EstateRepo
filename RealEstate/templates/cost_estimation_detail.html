@@ -1,0 +1,758 @@
+{% comment %} <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ property.title }}</title>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
+</head>
+<body>
+    <h1>{{ property.title }}</h1>
+    <p>{{ property.description }}</p>
+    <p>Address: {{ property.address }}, {{ property.city }}, {{ property.state }} {{ property.zip_code }}</p>
+    <p>Price: {{ property.price }}</p>
+    <p>Bedrooms: {{ property.bedrooms }}</p>
+    <p>Bathrooms: {{ property.bathrooms }}</p>
+    <p>Square Feet: {{ property.square_feet }}</p>
+    <p>Main Image: <img src="{{ property.main_image.url }}" alt="Image for {{ property.title }}" width="300"></p>
+
+    <div>
+        {% for image in images %}
+            <img src="{{ image.image.url }}" alt="Image for {{ property.title }}" width="300">
+        {% endfor %}
+    </div>
+    
+    <h2>Distance from Property to Your Frequent Locations</h2>
+    <ul>
+        {% for distance in distances %}
+            <li>{{ distance.location.name }}: {{ distance.distance }} km</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Vehicles and Locations</h2>
+    <form method="post" action="{% url 'cost_estimation_detail' property.pk %}">
+        {% csrf_token %}
+        
+        <!-- Number of Parties (Vehicles) Involved -->
+        <label for="num_parties">How many vehicles are involved?</label>
+        <select id="num_parties" name="num_parties" onchange="showVehicleInputs()" required>
+            <option value="">Select Number of Vehicles</option>
+            {% for i in range(1, vehicles.count|add:1) %}
+                <option value="{{ i }}">{{ i }}</option>
+            {% endfor %}
+        </select>
+        <br>
+
+        <div id="vehicle-inputs-container">
+            <!-- The dynamic vehicle input fields will be generated here by JavaScript -->
+        </div>
+
+        <!-- Current Fuel Price -->
+        <label for="current_fuel_price">Current Fuel Price (per liter):</label>
+        <input type="number" id="current_fuel_price" name="current_fuel_price" step="0.01" placeholder="Enter fuel price" required>
+        <br>
+        
+        <button type="submit">Estimate Cost</button>
+    </form>
+
+    <script>
+        function initAutocomplete() {
+            // Initializes autocomplete for dynamic work and other location fields
+            const autocompleteInputs = document.querySelectorAll('.autocomplete-input');
+            autocompleteInputs.forEach(input => {
+                const autocomplete = new google.maps.places.Autocomplete(input);
+                autocomplete.setComponentRestrictions({'country': ['ng']});
+            });
+        }
+
+        function showVehicleInputs() {
+            const numParties = document.getElementById('num_parties').value;
+            const container = document.getElementById('vehicle-inputs-container');
+            container.innerHTML = ''; // Clear previous inputs
+
+            for (let i = 1; i <= numParties; i++) {
+                container.innerHTML += `
+                    <h3>Vehicle ${i}</h3>
+                    <label for="vehicle_${i}">Select Vehicle:</label>
+                    <select id="vehicle_${i}" name="vehicle_${i}" required>
+                        {% for vehicle in vehicles %}
+                            <option value="{{ vehicle.id }}">{{ vehicle.name }} ({{ vehicle.fuel_consumption_rate }} l/km)</option>
+                        {% endfor %}
+                    </select>
+                    <br>
+                    
+                    <!-- Work Location Input for Each Vehicle -->
+                    <label for="work_location_${i}">Work Location for Vehicle ${i}:</label>
+                    <input type="text" id="work_location_${i}" name="work_location_${i}" class="autocomplete-input" placeholder="Enter work address for vehicle ${i}" required>
+                    <br>
+                    
+                    <!-- Work Trips Per Week for Each Vehicle -->
+                    <label for="work_trips_per_week_${i}">Trips to Work Per Week for Vehicle ${i}:</label>
+                    <input type="number" id="work_trips_per_week_${i}" name="work_trips_per_week_${i}" value="5" min="1" max="7" required>
+                    <br>
+                    
+                    <!-- Other Locations Input for Each Vehicle -->
+                    <label for="other_locations_${i}">Other Locations for Vehicle ${i} (Address:Trips per Week):</label>
+                    <textarea id="other_locations_${i}" name="other_locations_${i}" class="autocomplete-input" placeholder="e.g., Church:1, Gym:2"></textarea>
+                    <br>
+                    <small>Enter additional locations in the format: <strong>Address:Trips per Week</strong> (separated by commas).</small>
+                    <br><br>
+                `;
+            }
+            
+            // Reinitialize autocomplete for dynamically generated inputs
+            initAutocomplete();
+        }
+
+        google.maps.event.addDomListener(window, 'load', initAutocomplete);
+    </script>
+    
+    {% if total_distance %}
+        <h3>Cost Estimation Result</h3>
+        <p><strong>Property:</strong> {{ property.address }}, {{ property.city }}, {{ property.state }}, {{ property.zip_code }}</p>
+        <p><strong>House Rent:</strong> {{ house_rent }}</p>
+        <p><strong>Total Distance:</strong> {{ total_distance }} km</p>
+        {% for i in range(1, vehicles.count|add:1) %}
+            <h4>Vehicle {{ i }}:</h4>
+            <p><strong>Work Location:</strong> {{ work_locations[i-1] }}</p>
+            <p><strong>Other Locations:</strong> {{ other_locations_list[i-1] }}</p>
+            <p><strong>Vehicle:</strong> {{ vehicles_list[i-1].name }} ({{ vehicles_list[i-1].fuel_consumption_rate }} L/km)</p>
+        {% endfor %}
+        <p><strong>Current Fuel Price:</strong> {{ current_fuel_price }} per liter</p>
+        <p><strong>Total Transportation Cost:</strong> {{ total_transportation_cost }}</p>
+        <p><strong>Total Effective Cost:</strong> {{ total_effective_cost }}</p>
+    {% endif %}
+</body>
+</html> {% endcomment %}
+
+{% load static %}
+
+{% comment %}<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ property.title }}</title>
+    
+
+  <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ google_api_key }}&libraries=places"></script>
+     <!-- 
+    - custom css link
+  -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/estimation.css'%}">
+    <link rel="icon" type="image/png" href="{% static 'fav.png' %}">
+</head>
+ <body>
+    {% include "homeverse/nav.html" %}
+    <div class="property-detail-container">
+        <div class="property-header text-center">
+            <h1>{{ property.title }}</h1>
+            <p>{{ property.description }}</p>
+        </div>
+    
+        <!-- Property Images -->
+        <div class="property-images mb-5">
+            <div class="main-image mb-3">
+                <img src="{{ property.main_image.url }}" alt="Main Image for {{ property.title }}" class="img-fluid rounded">
+            </div>
+            <div class="additional-images d-flex justify-content-center gap-3">
+                {% for image in images %}
+                    <img src="{{ image.image.url }}" alt="Image for {{ property.title }}" class="img-thumbnail" style="max-width: 150px;">
+                {% endfor %}
+            </div>
+        </div>
+    
+        <!-- Property Information -->
+        <div class="property-info mb-4">
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item"><strong>Address:</strong> {{ property.address }}, {{ property.city }}, {{ property.state }} {{ property.zip_code }}</li>
+                <li class="list-group-item"><strong>Price:</strong> ₦{{ property.price }}</li>
+                <li class="list-group-item"><strong>Bedrooms:</strong> {{ property.bedrooms }}</li>
+                <li class="list-group-item"><strong>Bathrooms:</strong> {{ property.bathrooms }}</li>
+                <li class="list-group-item"><strong>Square Feet:</strong> {{ property.square_feet }}</li>
+            </ul>
+        </div>
+    
+        <!-- Cost Estimation Form -->
+        <div class="cost-estimation-section mb-5">
+            <h2 class="text-center mb-4">Commute Cost Estimation</h2>
+            <form method="post" action="{% url 'cost_estimation_detail' property.pk %}" class="cost-estimation-form">
+                {% csrf_token %}
+
+
+
+
+                
+    
+                <!-- Number of Vehicles for Estimation -->
+                <div class="mb-3">
+                    <label for="num_cars" class="form-label">How many vehicles are involved in the estimation?</label>
+                    <input type="number" id="num_cars" name="num_cars" class="form-control" min="1" max="{{ vehicles|length }}" value="1" required>
+                </div>
+    
+                <!-- Fuel Price Input -->
+                <div class="mb-3">
+                    <label for="current_fuel_price" class="form-label">Current Fuel Price (per liter):</label>
+                    <input type="number" id="current_fuel_price" name="current_fuel_price" class="form-control" step="0.01" min="0" value="0.00" required>
+                </div>
+    
+                <!-- Dynamic Vehicle Information Sections -->
+                <div id="vehicle-sections"></div>
+
+
+    
+                <!-- Submit Button -->
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-primary">Estimate Cost</button>
+                </div>
+            </form>
+        </div>
+    
+        <!-- Display the Result Below the Form (if available) -->
+        {% if vehicle_summaries %}
+        <div class="cost-estimation-result">
+            <h3 class="text-center mb-4">Cost Estimation Result</h3>
+            {% for vehicle in vehicle_summaries %}
+            <div class="vehicle-summary mb-3">
+                <h4>{{ vehicle.name }} ({{ vehicle.fuel_consumption_rate }} L/km)</h4>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><strong>Work Location:</strong> {{ vehicle.work_location }}</li>
+                    <li class="list-group-item"><strong>Trips to Work Per Week:</strong> {{ vehicle.work_trips_per_week }}</li>
+                    <li class="list-group-item"><strong>Other Locations:</strong> {{ vehicle.other_locations }}</li>
+                    <li class="list-group-item"><strong>Total Distance:</strong> {{ vehicle.total_distance|floatformat:2 }} km</li>
+                    <li class="list-group-item"><strong>Transportation Cost:</strong> ₦{{ vehicle.transportation_cost|floatformat:2 }}</li>
+                </ul>
+            </div>
+            {% endfor %}
+            <div class="total-cost mt-4">
+                <h4>Total Effective Cost for Property:</h4>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><strong>House Rent:</strong> ₦{{ property.price }}</li>
+                    <li class="list-group-item"><strong>Total Transportation Cost:</strong> ₦{{ total_transportation_cost|floatformat:2 }}</li>
+                    <li class="list-group-item"><strong>Total Effective Cost:</strong> ₦{{ total_effective_cost|floatformat:2 }}</li>
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- JavaScript to Dynamically Add Vehicle Sections Based on User Input -->
+    <script>
+        function initAutocomplete() {
+            document.getElementById('num_cars').addEventListener('input', function () {
+                const numCars = parseInt(this.value) || 1;
+                const vehicleSections = document.getElementById('vehicle-sections');
+                vehicleSections.innerHTML = '';  // Clear existing sections
+    
+                for (let i = 1; i <= numCars; i++) {
+                    const section = document.createElement('div');
+                    section.classList.add('vehicle-section', 'mb-4');
+                    section.innerHTML = `
+                        <h4>Vehicle ${i}</h4>
+                        <div class="mb-3">
+                            <label for="vehicle_${i}" class="form-label">Vehicle ID:</label>
+                            <select id="vehicle_${i}" name="vehicle_${i}" class="form-select">
+                                {% for vehicle in vehicles %}
+                                    <option value="{{ vehicle.id }}">{{ vehicle.name }} - {{ vehicle.fuel_consumption_rate }} L/km</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="work_location_${i}" class="form-label">Work Location:</label>
+                            <input type="text" id="work_location_${i}" name="work_location_${i}" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="work_trips_per_week_${i}" class="form-label">Trips to Work Per Week:</label>
+                            <input type="number" id="work_trips_per_week_${i}" name="work_trips_per_week_${i}" class="form-control" min="1" max="7" value="5" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="other_locations_${i}" class="form-label">Other Locations (Format: Address:Trips/Week, ...):</label>
+                            <input type="text" id="other_locations_${i}" name="other_locations_${i}" class="form-control">
+                        </div>
+                    `;
+                    vehicleSections.appendChild(section);
+                }
+    
+                // Initialize Google Places Autocomplete for each work location input
+                const workLocationInputs = document.querySelectorAll('input[id^="work_location_"]');
+                workLocationInputs.forEach(input => {
+                    new google.maps.places.Autocomplete(input);
+                });
+            });
+            
+            // Trigger an initial load for the default number of vehicles
+            document.getElementById('num_cars').dispatchEvent(new Event('input'));
+        }
+        
+        window.onload = initAutocomplete;
+    </script>
+
+
+
+    
+    
+    </body>  
+    </html>
+    {%endcomment %}
+    
+    
+    
+    
+    
+    
+    {% comment %} 
+    </head>
+    <body>
+    {% include "homeverse/nav.html" %}
+    <div class="property-detail-container">
+        <div class="property-header text-center">
+            <h1>{{ property.title }}</h1>
+            <p>{{ property.description }}</p>
+            </div>
+            
+        <!-- Property Images -->
+        <div class="property-images mb-5">
+            <div class="main-image mb-3">
+                <img src="{{ property.main_image.url }}" alt="Main Image for {{ property.title }}" class="img-fluid rounded">
+                </div>
+                <div class="additional-images d-flex justify-content-center gap-3">
+                    {% for image in images %}
+                    <img src="{{ image.image.url }}" alt="Image for {{ property.title }}" class="img-thumbnail" style="max-width: 150px;">
+                    {% endfor %}
+                    </div>
+                    </div>
+    
+        <!-- Property Information -->
+        <div class="property-info mb-4">
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item"><strong>Address:</strong> {{ property.address }}, {{ property.city }}, {{ property.state }} {{ property.zip_code }}</li>
+                <li class="list-group-item"><strong>Price:</strong> ₦{{ property.price }}</li>
+                <li class="list-group-item"><strong>Bedrooms:</strong> {{ property.bedrooms }}</li>
+                <li class="list-group-item"><strong>Bathrooms:</strong> {{ property.bathrooms }}</li>
+                <li class="list-group-item"><strong>Square Feet:</strong> {{ property.square_feet }}</li>
+            </ul>
+        </div>
+   
+        
+        <form method="post" action="{% url 'cost_estimation_detail' property.pk %}" class="cost-estimation-form">
+            {% csrf_token %}
+            <div>
+                <label for="work_location">Work Location:</label>
+            <input type="text" id="work_location" name="work_location" class="autocomplete" placeholder="Enter address">
+            
+            <label for="work_trips_per_week">Trips per Week:</label>
+            <input type="number" id="work_trips_per_week" name="work_trips_per_week" value="0" min="0">
+            </div>
+            
+            <div id="additional-locations"></div>
+            
+            <button type="button" onclick="addLocationField()">Add Another Location</button>
+            
+            <label for="num_cars">Number of Vehicles:</label>
+            <input type="number" id="num_cars" name="num_cars" value="1" min="1">
+            <button type="submit">Estimate Costs</button>
+            </form>
+            
+            <!-- Results Table -->
+            {% if vehicle_summaries %}
+            <h2>Cost Estimation Results</h2>
+            <table>
+        <thead>
+            <tr>
+                <th>Vehicle</th>
+                <th>Work Location</th>
+                <th>Trips per Week</th>
+                <th>Other Locations</th>
+                <th>Total Distance (km)</th>
+                <th>Transportation Cost</th>
+                </tr>
+                </thead>
+                <tbody>
+                    {% for summary in vehicle_summaries %}
+                <tr>
+                    <td>{{ summary.name }}</td>
+                    <td>{{ summary.work_location }}</td>
+                    <td>{{ summary.work_trips_per_week }}</td>
+                    <td>{{ summary.other_locations }}</td>
+                    <td>{{ summary.total_distance }}</td>
+                    <td>{{ summary.transportation_cost }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                    </table>
+                    
+                    <h3>Cost Breakdown</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Period</th>
+                                <th>Cost</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+            <tr>
+                <td>Weekly</td>
+                <td>{{ weekly_cost }}</td>
+                </tr>
+                <tr>
+                    <td>Monthly</td>
+                    <td>{{ monthly_cost }}</td>
+            </tr>
+            <tr>
+                <td>Yearly</td>
+                <td>{{ yearly_cost }}</td>
+                </tr>
+                </tbody>
+                </table>
+                {% endif %}
+                </div>
+                <!-- Google Places Autocomplete -->
+<script>
+    function initializeAutocomplete(inputId) {
+        var input = document.getElementById(inputId);
+        if (input) {
+            var autocomplete = new google.maps.places.Autocomplete(input);
+            autocomplete.setFields(['address_components', 'geometry', 'icon', 'name']);
+            }
+            }
+            
+            function initAutocomplete() {
+        // Initialize autocomplete for all address inputs
+        document.querySelectorAll('.autocomplete').forEach(function(element) {
+            initializeAutocomplete(element.id);
+            });
+            }
+            
+            function addLocationField() {
+        let container = document.getElementById('additional-locations');
+        let index = container.children.length;
+        let locationHtml = `
+        <div class="location-field">
+            <label for="location_name_${index}">Location Name:</label>
+                <input type="text" id="location_name_${index}" name="location_name_${index}" placeholder="e.g. Church, Market">
+
+                <label for="location_address_${index}">Address:</label>
+                <input type="text" id="location_address_${index}" name="location_address_${index}" class="autocomplete" placeholder="Enter address">
+
+                <label for="location_trips_per_week_${index}">Trips per Week:</label>
+                <input type="number" id="location_trips_per_week_${index}" name="location_trips_per_week_${index}" value="0" min="0">
+                </div>
+                `;
+                container.insertAdjacentHTML('beforeend', locationHtml);
+                initAutocomplete();  // Reinitialize autocomplete for the new input field
+                }
+                
+                function updateVehicleFields() {
+                    var numCars = document.getElementById('num_cars').value;
+                    var vehicleFieldsContainer = document.getElementById('vehicle-fields');
+                    vehicleFieldsContainer.innerHTML = '';
+                    
+                    for (var i = 1; i <= numCars; i++) {
+                        vehicleFieldsContainer.innerHTML += `
+                        <div>
+                            <h3>Vehicle ${i}</h3>
+                            <label for="vehicle_${i}">Vehicle:</label>
+                            <select id="vehicle_${i}" name="vehicle_${i}" required>
+                                {% for vehicle in vehicles %}
+                                <option value="{{ vehicle.id }}">{{ vehicle.name }}</option>
+                                {% endfor %}
+                                </select><br/>
+                                <label for="work_location_${i}">Work Location:</label>
+                                <input type="text" id="work_location_${i}" name="work_location_${i}" class="autocomplete" onfocus="initializeAutocomplete('work_location_${i}')" required/><br/>
+                                <label for="work_trips_per_week_${i}">Trips per Week:</label>
+                                <input type="number" id="work_trips_per_week_${i}" name="work_trips_per_week_${i}" value="5" min="1" required/><br/>
+                                </div>
+                                `;
+                                }
+                                initAutocomplete();  // Reinitialize autocomplete for all fields
+                                }
+                                
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    updateVehicleFields();
+                                    });
+                                    </script>
+                                    
+                                    </body>
+                                    </html> {% endcomment %}
+                                    
+                                    
+                                    
+                                    
+                                    
+
+                                    
+                                    
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- Load Google Maps API -->
+    <script
+        async 
+        defer
+    src="https://maps.googleapis.com/maps/api/js?key={{ google_api_key }}&callback=initMap&libraries=places"
+    ></script>
+    <title>{{ property.title }}</title>
+    
+    
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <!-- 
+        - custom css link
+        -->
+        <link rel="stylesheet" href="{% static 'css/style.css' %}">
+        <link rel="stylesheet" href="{% static 'css/estimation.css'%}">
+        <link rel="icon" type="image/png" href="{% static 'fav.png' %}">    
+        
+            
+        {% comment %} <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"> {% endcomment %}
+       
+</head>
+    
+    <body>
+        {% include "homeverse/nav.html" %}
+        
+        <div class="container-fluid">
+            <div class="property-detail-container">
+                <!-- Property Header -->
+                <div class="property-header text-center">
+                    <h1>{{ property.title }}</h1>
+                    <p>{{ property.description }}</p>
+                </div>
+    
+                <!-- Property Images -->
+                <div class="property-images mb-5">
+                    <div class="main-image mb-3 text-center">
+                        <img src="{{ property.main_image.url }}" alt="Main Image for {{ property.title }}" class="img-fluid rounded">
+                    </div>
+                    <div class="additional-images d-flex justify-content-center gap-3">
+                        {% for image in images %}
+                        <img src="{{ image.image.url }}" alt="Image for {{ property.title }}" class="img-thumbnail">
+                        {% endfor %}
+                    </div>
+                </div>
+    
+                <!-- Property Information -->
+                <div class="property-info mb-4">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><strong>Address:</strong> {{ property.address }}, {{ property.city }}, {{ property.state }} {{ property.zip_code }}</li>
+                        <li class="list-group-item"><strong>Price:</strong> ₦{{ property.price|floatformat:2  }}</li>
+                        <li class="list-group-item"><strong>Bedrooms:</strong> {{ property.bedrooms }}</li>
+                        <li class="list-group-item"><strong>Bathrooms:</strong> {{ property.bathrooms }}</li>
+                        <li class="list-group-item"><strong>Square Feet:</strong> {{ property.square_feet }}</li>
+                    </ul>
+                </div>
+    
+                <!-- Google Map Section -->
+                {% comment %} <div id="map" class="map-container"></div> {% endcomment %}
+                
+                <!-- Cost Estimation Form -->
+                <form method="post" action="{% url 'cost_estimation_detail' property.pk %}" class="cost-estimation-form">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 ">
+                            <label for="num_cars">Number of Vehicles:</label>
+                            <input class="list-group-item" type="number" id="num_cars" name="num_cars" value="1" min="1" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="current_fuel_price">Current Fuel Price:</label>
+                            <input class="list-group-item" type="number" step="0.01" id="current_fuel_price" name="current_fuel_price" required>
+                        </div>
+                    </div>
+                    
+                    <button type="button" class="btn btn-primary mt-3 mb-2" onclick="updateVehicleFields()">Update Vehicle Fields</button>
+    
+                    <div id="vehicle-fields" class="vehicle-fields-container">
+                        <!-- Vehicle fields will be dynamically added here -->
+                    </div>
+    
+                    <button type="submit" class="btn btn-success">Estimate Costs</button>
+                </form>
+                
+                        <!-- Table 1: Estimated Results -->
+            <h2>Estimated Results</h2>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Period</th>
+                            <th>Total Distance (km)</th>
+                            <th>Rent</th>
+                            <th>Transportation Cost</th>
+                            <th>Effective Cost (Rent + Transport)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Weekly</td>
+                            <td>{{ weekly_distance_for_vehicle|floatformat:2 }}</td>
+                            <td>{{ rent_weekly|floatformat:2 }}</td>
+                            <td>{{ total_transportation_cost_weekly|floatformat:2 }}</td>
+                            <td>{{ effective_cost_weekly|floatformat:2 }}</td>
+                        </tr>
+                        <tr>
+                            <td>Monthly</td>
+                            <td>{{ monthly_distance_for_vehicle|floatformat:2 }}</td>
+                            <td>{{ rent_monthly|floatformat:2 }}</td>
+                            <td>{{ total_transportation_cost_monthly|floatformat:2 }}</td>
+                            <td>{{ effective_cost_monthly|floatformat:2 }}</td>
+                        </tr>
+                        <tr>
+                            <td>Yearly</td>
+                            <td>{{ yearly_distance_for_vehicle|floatformat:2 }}</td>
+                            <td>{{ rent_yearly|floatformat:2 }}</td>
+                            <td>{{ total_transportation_cost_yearly|floatformat:2 }}</td>
+                            <td>{{ effective_cost_yearly|floatformat:2 }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+                        <!-- Table 2: Vehicle Summary -->
+            {% comment %} <h2>Vehicle Summary</h2>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Vehicle Name</th>
+                            <th colspan="3">Total Distance (km)</th>
+                            <th colspan="3">Estimated Cost (Transportation)</th>
+                        </tr>
+                        <tr>
+                            <th></th>
+                            <th>Weekly</th>
+                            <th>Monthly</th>
+                            <th>Yearly</th>
+                            <th>Weekly</th>
+                            <th>Monthly</th>
+                            <th>Yearly</th>
+                        </tr>
+                    </thead>
+                    {% comment %} {% for vehicle_name, distances in vehicle_distances.items %}
+                    <tr>
+                        <td>{{ vehicle_name }}</td>
+                        <td>{{ distances.weekly|floatformat:2 }} km</td>
+                        <td>{{ distances.monthly|floatformat:2 }} km</td>
+                        <td>{{ distances.yearly|floatformat:2 }} km</td>
+                        <td>{{ summary.weekly_estimate|floatformat:2 }}</td>
+                        <td>{{ summary.monthly_estimate|floatformat:2 }}</td>
+                        <td>{{ summary.yearly_estimate|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %} 
+
+                     <tbody>
+                        {% for summary in vehicle_summaries %}
+                        <tr>
+                            <td>{{ summary.vehicle_name }}</td>
+                            <td>{{ summary.total_distance_weekly|floatformat:2 }}</td>
+                            <td>{{ summary.total_distance_monthly|floatformat:2 }}</td>
+                            <td>{{ summary.total_distance_yearly|floatformat:2 }}</td>
+                            <td>{{ summary.weekly_estimate|floatformat:2 }}</td>
+                            <td>{{ summary.monthly_estimate|floatformat:2 }}</td>
+                            <td>{{ summary.yearly_estimate|floatformat:2 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody> 
+                </table>
+            </div> 
+{% endcomment %}
+
+
+            </div>
+        </div>
+    
+        <!-- Bootstrap JS and dependencies -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+        <!-- Custom Scripts -->
+        <script>
+            function initializeAutocomplete(inputId) {
+                var input = document.getElementById(inputId);
+                var autocomplete = new google.maps.places.Autocomplete(input);
+                autocomplete.setFields(['address_components', 'geometry', 'icon', 'name']);
+            }
+    
+            function initAutocomplete() {
+                var inputs = document.getElementsByClassName('autocomplete');
+                for (var i = 0; i < inputs.length; i++) {
+                    initializeAutocomplete(inputs[i].id);
+                }
+            }
+    
+            function updateVehicleFields() {
+                var numCars = document.getElementById('num_cars').value;
+                var vehicleFieldsContainer = document.getElementById('vehicle-fields');
+                vehicleFieldsContainer.innerHTML = '';
+    
+                for (var i = 1; i <= numCars; i++) {
+                    vehicleFieldsContainer.innerHTML += `
+                    <div>
+                        {% if vehicles.exists %}
+                        <h3>Vehicle ${i}</h3>
+                        <label for="vehicle_${i}">Vehicle:</label>   
+                        <select id="vehicle_${i}" name="vehicle_${i}" class="form-control " required>
+                        <option value="" disabled selected>Select a Vehicle</option>
+                        
+                        {% for vehicle in vehicles %}
+                            <option value="{{ vehicle.id }}">{{ vehicle.name }}/{{vehicle.fuel_consumption_rate}}</option>
+                        {% endfor %}
+
+                        {% comment %} <option value="add">Add More Vehicle</option> {% endcomment %}
+
+                        </select><br/>
+                        
+                        {% else %}
+                        <!-- If no vehicles are created, show a link to add a vehicle -->
+                        <p>You have not added any vehicles yet. <a href="{% url 'add_vehicle' %}">Click here to add a vehicle.</a></p>
+                        {% endif %}
+
+                        <label for="work_location_${i}">Work Location:</label>
+                        <input type="text" id="work_location_${i}" name="work_location_${i}" class="autocomplete form-control" required><br/>
+
+                        <label for="work_trips_per_week_${i}">Trips per Week:</label>
+                        <input type="number" id="work_trips_per_week_${i}" name="work_trips_per_week_${i}" value="5" min="1" class="form-control" required><br/>
+
+                        <!-- Other Locations Section -->
+                        <div id="other-locations-container-${i}">
+                            <div id="additional-locations-${i}"></div>
+                            <button type="button" class="btn btn-secondary mb-3" onclick="addLocationField(${i})">Add Other Location</button>
+                        </div>
+                    </div>
+                    `;
+                }
+                initAutocomplete();
+            }
+            document.getElementById("vehicle_{{ i }}").addEventListener("change", function() {
+                if (this.value === "add") {
+                    window.location.href = "{% url 'add_vehicle' %}";
+                }
+            });
+            function addLocationField(vehicleIndex) {
+                let container = document.getElementById(`additional-locations-${vehicleIndex}`);
+                let index = container.children.length;
+                let locationHtml = `
+                    <div class="location-field mb-3">
+                        <label for="location_name_${vehicleIndex}_${index}">Location Name:</label>
+                        <input type="text" id="location_name_${vehicleIndex}_${index}" name="location_name_${vehicleIndex}_${index}" class="form-control" placeholder="e.g. Church, Market">
+                        
+                        <label for="location_address_${vehicleIndex}_${index}">Address:</label>
+                        <input type="text" id="location_address_${vehicleIndex}_${index}" name="location_address_${vehicleIndex}_${index}" class="autocomplete form-control" required>
+                        
+                        <label for="location_trips_per_week_${vehicleIndex}_${index}">Trips per Week:</label>
+                        <input type="number" id="location_trips_per_week_${vehicleIndex}_${index}" name="location_trips_per_week_${vehicleIndex}_${index}" value="1" class="form-control" min="1" required>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', locationHtml);
+                initAutocomplete();
+            }
+        </script>
+</body>
+    
+    {% include "homeverse/footer.html" %}
+</body>
+</html>

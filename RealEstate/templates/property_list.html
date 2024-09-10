@@ -1,0 +1,234 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property List</title>
+
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <!-- 
+    - custom css link
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    -->
+    <link rel="stylesheet" href="{% static 'css/propertyList.css' %}">
+    
+    <link rel="icon" type="image/png" href="{% static 'fav.png' %}">
+
+</head>
+<body>
+
+    {% include "homeverse/nav.html" %}
+
+
+    <div class="container">
+
+        <h1>List of Properties </h1>
+    
+        <!-- Search and Filter Form -->
+        <form method="GET" action="{% url 'property_search' %}">
+            <input type="text" name="q" placeholder="Search..." value="{{ query }}">
+    
+            <label for="price_min">Min Price:</label>
+            <input type="number" name="price_min" id="price_min" placeholder="Min Price" value="{{ price_min }}">
+    
+            <label for="price_max">Max Price:</label>
+            <input type="number" name="price_max" id="price_max" placeholder="Max Price" value="{{ price_max }}">
+    
+            <label for="bedrooms">Bedrooms:</label>
+            <input type="number" name="bedrooms" id="bedrooms" placeholder="Bedrooms" value="{{ bedrooms }}">
+    
+            <label for="bathrooms">Bathrooms:</label>
+            <input type="number" name="bathrooms" id="bathrooms" placeholder="Bathrooms" value="{{ bathrooms }}">
+    
+            <button type="submit">Apply Filters</button>
+        </form>
+    
+
+        <div class="toggle-buttons">
+            <a href="?sale_or_rent=rent" class="{% if sale_or_rent == 'rent' %}active{% endif %}">For Rent</a>
+            <a href="?sale_or_rent=sale" class="{% if sale_or_rent == 'sale' %}active{% endif %}">For Sale</a>
+        </div>
+
+        {% if query %}
+        <p>Results for "{{ query }}":</p>
+        {% else %}
+        <p>All Properties - ({{ properties.count }})</p>
+        {% endif %}
+{% comment %} 
+        <ul class="property-list">
+            {% for property in properties %}
+            <li class="property-card" data-type="{{ property.sale_or_rent }}">
+                <!-- Display the Main Image -->
+                <div class="main-image">
+                    <img src="{{ property.main_image.url }}" alt="{{ property.title }}">
+                </div>
+                <!-- Image Carousel for Additional Images -->
+                <div class="carousel">
+                    {% for image in property.images.all %}
+                    <div class="carousel-item">
+                        <img src="{{ image.image.url }}" alt="{{ property.title }}">
+                    </div>
+                    {% endfor %}
+                </div>
+                <h3>{{ property.title }}</h3>
+                <p>{{ property.address }}, {{ property.city }}, {{ property.state }}</p>
+                <p>₦ {{ property.price }}{% if property.sale_or_rent == 'rent' %} / Month{% else %} - One-time Sale{% endif %}</p>
+                <a href="{% url 'property_detail' property.pk %}">View Details</a>
+            </li>
+            {% empty %}
+            <li>No properties found matching your search criteria.</li>
+            {% endfor %}
+        </ul> {% endcomment %}
+   
+    
+    
+    {% comment %} <script>
+        function togglePropertyType(type) {
+            const propertyCards = document.querySelectorAll('.property-card');
+            const buttons = document.querySelectorAll('.filter-buttons button');
+    
+            buttons.forEach(button => button.classList.remove('active'));
+    
+            if (type === 'all') {
+                buttons[0].classList.add('active');
+                propertyCards.forEach(card => card.style.display = 'block');
+            } else {
+                buttons.forEach(button => {
+                    if (button.textContent.toLowerCase() === type) {
+                        button.classList.add('active');
+                    }
+                });
+    
+                propertyCards.forEach(card => {
+                    if (card.dataset.propertyType === type) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            }
+        }
+    </script>
+     {% endcomment %}
+
+
+<section class="property" id="property">
+    <div class="container">
+                <h2 class="h2 section-title">Properties</h2>
+
+    <ul class="property-list has-scrollbar">                 
+                {% for property in properties %}
+        <li>
+            <div class="property-card">
+
+                <figure class="card-banner">
+                    <a href="{% url 'property_detail' property.pk %}">{{ property.title }}
+                        {% if property.main_image %}
+                            <img src="{{ property.main_image.url }}" alt="{{ property.title }}" class="w-100">
+                        {% else %}
+                            <img src="{% static 'images/default-property.jpg' %}" alt="Default Property Image" class="w-100">
+                        {% endif %}
+                    </a>
+
+                    {% if property.sale_or_rent == 'sale' %}
+                    <div class="card-badge green">For Sale</div>
+                    {% elif property.sale_or_rent == 'rent' %}
+                    <div class="card-badge green">For Rent</div>                  
+                    {% else %}
+                    <div class="card-badge green">Undefined</div>
+                    {% endif %}
+                        
+                    <div class="banner-actions">
+                        <button class="banner-actions-btn">
+                            <ion-icon name="location"></ion-icon>
+                            <address>{{ property.address }}, {{ property.city }}</address>
+                        </button>
+                    </div>
+                </figure>
+
+                <div class="card-content">
+                    <div class="card-price">
+                        <strong>₦ {{ property.price }}</strong>/Month
+                    </div>
+
+                    <h3 class="h3 card-title">
+                    <a href="{% url 'property_detail' property.pk %}">{{ property.title }}</a>             
+                    </h3>
+
+                    <p class="card-text">
+                        {{ property.description|truncatewords:15 }}
+                    </p>
+
+                    <ul class="card-list">
+                        {% if property.bedrooms %}
+                        <li class="card-item">
+                            <strong>{{ property.bedrooms }}</strong>
+                            <ion-icon name="bed-outline"></ion-icon>
+                            <span>Bedrooms</span>
+                        </li>
+                        {% endif %}
+
+                        {% if property.bathrooms %}
+                        <li class="card-item">
+                            <strong>{{ property.bathrooms }}</strong>
+                            <ion-icon name="man-outline"></ion-icon>
+                            <span>Bathrooms</span>
+                        </li>
+                        {% endif %}
+
+                        {% if property.square_feet %}
+                        <li class="card-item">
+                            <strong>{{ property.square_feet }}</strong>
+                            <ion-icon name="square-outline"></ion-icon>
+                            <span>Square Ft</span>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+
+                {% comment %} <a href="{% url 'property_detail' property.id %}?place_type=market">Find Markets Nearby</a> {% endcomment %}
+
+                <div class="card-footer">
+                    <div class="card-author">
+                        <figure class="author-avatar">
+                            <img src="{% static 'images/author.jpg' %}" alt="Agent Image" class="w-100">
+                        </figure>
+                        <div>
+                            <p class="author-name">
+                                <a href="#">Agent Name</a>
+                            </p>
+                            <p class="author-title">{{property.owner}}</p>
+                            {% comment %} <p class="author-title">{{property.owner.email}}</p> {% endcomment %}
+                        </div>
+                    </div>
+
+                    <div class="card-footer-actions">
+                        <button class="card-footer-actions-btn">
+                            <ion-icon name="resize-outline"></ion-icon>
+                        </button>
+
+                        <button class="card-footer-actions-btn">
+                            <ion-icon name="heart-outline"></ion-icon>
+                        </button>
+
+                        <button class="card-footer-actions-btn">
+                            <ion-icon name="add-circle-outline"></ion-icon>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+
+    </div>
+</section>
+
+ </div>
+
+    {% include "homeverse/footer.html" %}
+
+    <script src="{% static 'js/propertylist.js' %}"></script>
+</body>
+</html>

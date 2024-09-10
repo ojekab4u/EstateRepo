@@ -1,0 +1,42 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Services</title>
+    
+
+  <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+     <!-- 
+    - custom css link
+  -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/service.css'%}">
+
+    <link rel="icon" type="image/png" href="{% static 'fav.png' %}">
+</head>
+<body>
+    {% include "homeverse/nav.html" %}
+    <div class="services-section">
+        <h1>Our Services</h1>
+        <p>What We Offer</p>
+        <div class="service-cards">
+            <div class="service-card">
+                <h3>Property Management</h3>
+                <p>Comprehensive property management services tailored to your needs.</p>
+            </div>
+            <div class="service-card">
+                <h3>Consultancy</h3>
+                <p>Expert advice and guidance in all things real estate.</p>
+            </div>
+            <!-- Add more service cards -->
+        </div>
+        <a class="cta-button" href="{% url 'contact'%}"> Contact Us for a Free Consultation</a>
+    </div>
+    
+    
+    {% include "homeverse/footer.html" %}
+
+</body>
+</html>

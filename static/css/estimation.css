@@ -1,0 +1,220 @@
+.property-detail-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.property-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.property-header p {
+    font-size: 1.2rem;
+    color: #777;
+}
+
+.property-images {
+    text-align: center;
+}
+
+.main-image img {
+    width: 100%;
+    max-height: 400px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.additional-images img {
+    max-width: 100%;
+    height: auto;
+    object-fit: cover;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.additional-images img:hover {
+    transform: scale(1.05);
+}
+
+.property-info ul {
+    font-size: 1.1rem;
+    list-style: none;
+    padding: 0;
+}
+
+.property-info ul li {
+    padding: 10px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.cost-estimation-section h2 {
+    font-size: 2rem;
+    color: #333;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.cost-estimation-form label {
+    font-weight: bold;
+}
+
+.cost-estimation-result ul {
+    list-style: none;
+    padding: 0;
+}
+
+.cost-estimation-result ul li {
+    padding: 10px;
+    background: #e9ecef;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.vehicle-section {
+    padding: 15px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 5px;
+}
+
+.vehicle-section h4 {
+    margin-bottom: 15px;
+    font-weight: bold;
+    color: #007bff;
+}
+
+.vehicle-section .form-label {
+    font-weight: 500;
+    color: #555;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+table, th, td {
+    border: 1px solid #ddd;
+}
+th, td {
+    padding: 8px;
+    text-align: left;
+}
+th {
+    background-color: #f4f4f4;
+}
+.dynamic-fields {
+    margin-top: 20px;
+}
+.dynamic-fields div {
+    margin-bottom: 15px;
+}
+
+
+/* Custom CSS */
+.property-header {
+    margin-bottom: 20px;
+}
+
+.property-images .main-image img {
+    max-width: 100%;
+    height: auto;
+}
+
+.additional-images img {
+    max-width: 100px;
+    height: auto;
+}
+
+.cost-estimation-form input,
+.cost-estimation-form select {
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.vehicle-fields-container {
+    margin-bottom: 30px;
+}
+
+/* Make tables scrollable on small screens */
+.table-responsive {
+    overflow-x: auto;
+}
+
+.map-container {
+    height: 400px;
+    width: 100%;
+    margin-bottom: 30px;
+}
+@media (min-width: 768px) {
+    select {
+        width: 100%;
+    }
+
+    /* Adjust dropdown menu width */
+    select {
+        -webkit-appearance: none; /* To ensure consistent appearance across browsers */
+        appearance: none;
+        background: none; /* Remove the default dropdown icon */
+    }
+
+    /* Adjust width of the options (dropdown items) */
+    select:focus {
+        max-width: 200px; /* Reduce the width of the dropdown options */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+}
+
+@media (max-width: 576px) {
+    .additional-images img {
+        max-width: 150px;
+    }
+    select {
+        width: 100%;
+    }
+
+    /* Adjust dropdown menu width */
+    select {
+        -webkit-appearance: none; /* To ensure consistent appearance across browsers */
+        appearance: none;
+        background: none; /* Remove the default dropdown icon */
+    }
+
+    /* Adjust width of the options (dropdown items) */
+    select:focus {
+        max-width: 150px; /* Reduce the width of the dropdown options */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    /* Option styling to control display */
+    .select_option {
+        color: red;
+        max-width: 200px; /* Same as above */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cost Estimation Result</title>
+    {% comment %} <link rel="stylesheet" href="{% static 'css/styles.css' %}"> {% endcomment %}
+</head>
+<body>
+    <h1>Cost Estimation Result</h1>
+    <h2>Property: {{ property.name }}</h2>
+    <p>Address: {{ property.address }}, {{ property.city }}, {{ property.state }}, {{ property.zip_code }}</p>
+    <p>House Rent: {{ house_rent }}</p>
+    <p>Total Distance: {{ total_distance }} km</p>
+    <p>Total Transportation Cost: {{ total_transportation_cost }}</p>
+    <p>Total Effective Cost: {{ total_effective_cost }}</p>
+    {% comment %} <a href="{% url 'cost_estimation' %}">Estimate Another Property</a> {% endcomment %}
+</body>
+</html>

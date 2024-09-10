@@ -1,0 +1,58 @@
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.search-results-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.search-results-header p {
+    font-size: 1.2rem;
+    color: #666;
+}
+
+.property-card {
+    border: none;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.property-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.property-card img {
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+.property-card .card-body {
+    padding: 15px;
+}
+
+.property-card .card-title {
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.property-card .card-text {
+    margin-bottom: 10px;
+    color: #555;
+}
+
+.property-card .btn-primary {
+    background-color: #007bff;
+    border: none;
+    font-weight: 500;
+    padding: 8px 15px;
+    transition: background-color 0.3s;
+}
+
+.property-card .btn-primary:hover {
+    background-color: #0056b3;
+}

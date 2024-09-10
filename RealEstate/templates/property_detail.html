@@ -1,0 +1,165 @@
+ 
+ {% load static %}
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ property.title }}</title>
+    <link href="{% static 'css/propertyDetails.css' %}" rel="stylesheet">
+    
+    
+  <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+  <link rel="icon" type="image/png" href="{% static 'fav.png' %}">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+     <!-- 
+    - custom css link
+  -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+ 
+
+</head>
+<body>
+
+    {% include "homeverse/nav.html" %}
+
+    <div id="map" style="height: 400px; width: 100%;"></div>
+
+    <div class="property-detail-container">
+        <div class="property-header">
+            <h1>{{ property.title }}</h1>
+        <p>{{ property.description }}</p>
+    </div>
+
+    <div class="property-images">
+        <!-- Main Image -->
+        <div class="main-image">
+            <img src="{{ property.main_image.url }}" alt="Main Image for {{ property.title }}">
+        </div>
+        
+        <!-- Carousel for Other Images -->
+        <div id="property-carousel" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                {% for image in images %}
+                <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                    <img src="{{ image.image.url }}" alt="Image for {{ property.title }}">
+                </div>
+                {% endfor %}
+            </div>
+            <!-- Carousel Controls -->
+            <button class="carousel-control-prev" type="button" data-bs-target="#property-carousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#property-carousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Property Details -->
+    <div class="property-details">
+        <p><strong>Address:</strong> {{ property.address }}, {{ property.city }}, {{ property.state }} {{ property.zip_code }}</p>
+        <p><strong>Price:</strong> {{ property.price }}</p>
+        <p><strong>Bedrooms:</strong> {{ property.bedrooms }}</p>
+        <p><strong>Bathrooms:</strong> {{ property.bathrooms }}</p>
+        <p><strong>Square Feet:</strong> {{ property.square_feet }}</p>
+    </div>
+    
+    <!-- Cost Estimation Link -->
+    <div class="cost-estimation-link">
+        <a href="{% url 'cost_estimation_detail' property.pk %}" class="btn btn-primary">View Cost Estimation</a>
+    </div>
+</div>
+
+    <script>
+        function initMap() {
+            const address = "{{ property.address }}, {{ property.city }}, {{ property.state }}, {{ property.zip_code }}";
+            const geocoder = new google.maps.Geocoder();
+            const map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 14,
+                center: {lat: -34.397, lng: 150.644}  // Default center
+            });
+    
+            geocoder.geocode({'address': address}, function(results, status) {
+                if (status === 'OK') {
+                    map.setCenter(results[0].geometry.location);
+                    new google.maps.Marker({
+                        map: map,
+                        position: results[0].geometry.location
+                    });
+                } else {
+                    alert('Geocode was not successful for the following reason: ' + status);
+                }
+            });
+        }
+    </script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key={{google_api_key}}&callback=initMap"></script>
+    
+
+
+{% include "homeverse/footer.html" %}
+
+
+<!-- 
+- custom js link
+-->
+<script src="{% static 'js/script.js'%}"></script>
+<script src="{% static 'js/lightbox.js'%}"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
+</body>
+</html> 
+
+
+
+{% comment %} <html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ property.title }}</title>
+</head>
+<body>
+    <h1>{{ property.title }}</h1>
+    <p>{{ property.description }}</p>
+    <p>Address: {{ property.address }}, {{ property.city }}, {{ property.state }} {{ property.zip_code }}</p>
+    <p>Price: {{ property.price }}</p>
+    <p>Bedrooms: {{ property.bedrooms }}</p>
+    <p>Bathrooms: {{ property.bathrooms }}</p>
+    <p>Square Feet: {{ property.square_feet }}</p>
+    <p>Main Image: <img src="{{ property.main_image.url }}" alt="Image for {{ property.title }}" width="300"></p>
+
+    <div>
+        {% for image in images %}
+            <img src="{{ image.image.url }}" alt="Image for {{ property.title }}" width="300">
+        {% endfor %}
+    </div>
+    
+    <h2>Distance from Property to Your Frequent Locations</h2>
+    <ul>
+        {% for distance in distances %}
+            <li>{{ distance.location.name }}: {{ distance.distance }} km</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Vehicles</h2>
+    <form method="post" action="{% url 'cost_estimation' property.pk %}">
+        {% csrf_token %}
+        <label for="vehicle">Select Vehicle:</label>
+        <select name="vehicle" id="vehicle" required>
+            {% for vehicle in vehicles %}
+                <option value="{{ vehicle.id }}">{{ vehicle.name }} ({{ vehicle.fuel_consumption_rate }} L/km)</option>
+            {% endfor %}
+        </select>
+        <br>
+        <label for="current_fuel_price">Current Fuel Price per Liter:</label>
+        <input type="number" step="0.01" name="current_fuel_price" id="current_fuel_price" required>
+        <br>
+        <input type="submit" value="Calculate Cost Estimation">
+    </form>
+</body>
+</html> {% endcomment %}

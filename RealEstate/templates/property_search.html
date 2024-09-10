@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property Search</title>
+</head>
+<body>
+  {% comment %}  <h1>Property Search</h1>
+     <form method="POST">
+        {% csrf_token %}
+        {{ form }}
+        <button type="submit">Search</button>
+    </form> 
+    {% comment %}
+    
+    <div class="container">
+        <h1>Search Results</h1>
+        {% if query %}
+        <p>Results for "{{ query }}":</p>
+        {% else %}
+        <p>All Properties:</p>
+        {% endif %}
+        
+        <ul>
+            {% for property in properties %}
+            <li>
+                <h3>{{ property.title }}</h3>
+                <p>{{ property.address }}, {{ property.city }}, {{ property.state }}</p>
+                <p>${{ property.price }} / Month</p>
+                <a href="{% url 'property_detail' property.pk %}">View Details</a>
+            </li>
+            {% empty %}
+            <li>No properties found matching your search criteria.</li>
+            {% endfor %}
+        </ul>
+    </div>
+    
+    
+</body>
+</html>
+{% endcomment %}
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property Search Results</title>
+
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/searchResult.css'%}">
+    
+    <link rel="stylesheet" href="{% static 'css/propertyList.css' %}">
+    <link rel="icon" type="image/png" href="{% static 'fav.png' %}">
+     <!-- 
+    - custom css link
+  -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+</head>
+<body>
+   {% include "homeverse/nav.html" %}
+      <div class="container">
+        <!-- Search and Filter Form -->
+      <form method="GET" action="{% url 'property_search' %}">
+        <input type="text" name="q" placeholder="Search..." value="{{ query }}">
+
+        <button type="submit">Search</button>
+    </form>
+      </div>
+
+    <div class="container mt-5">
+        <div class="search-results-header text-center mb-4">
+            <h1 class="mb-3">Search Results</h1>
+            {% if query %}
+                <p class="lead">Results for "{{ query }}":</p>
+            {% else %}
+                <p class="lead">All Properties:</p>
+            {% endif %}
+        </div>
+    
+        <div class="row">
+            {% for property in properties %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="property-card card shadow-sm">
+                    <img src="{{ property.main_image.url }}" alt="{{ property.title }}" class="card-img-top" style="height: 200px; object-fit: cover;">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ property.title }}</h5>
+                        <p class="card-text">{{ property.address }}, {{ property.city }}, {{ property.state }}</p>
+                        <p class="card-text text-primary"><strong>${{ property.price }} / Month</strong></p>
+                        <a href="{% url 'property_detail' property.pk %}" class="btn btn-primary">View Details</a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <p class="text-center">No properties found matching your search criteria.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    
+    {% include "homeverse/footer.html" %}
+
+</body>
+</html>
+
