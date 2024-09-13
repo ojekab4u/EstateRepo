@@ -2,7 +2,7 @@
 from django.conf import settings
 # from .utils import get_distance
 from django.contrib.messages import success, error
-from django.shortcuts import render, redirect, get_object_or_404, HttpResponse
+from django.shortcuts import render, redirect, get_object_or_404, HttpResponse, HttpResponseRedirect
 from .models import Property, PropertyImage, Property, Vehicle
 from decimal import Decimal, ROUND_HALF_UP
 from .forms import (UserRegistrationForm, 
@@ -12,6 +12,7 @@ from .forms import (UserRegistrationForm,
                     VehicleForm
                     )
 from .forms import AgentRegistrationForm, GeneralUserRegistrationForm
+from django.urls import reverse_lazy
 
 from django.contrib import messages
 from .models import Property, UserLocation, Vehicle
@@ -30,10 +31,17 @@ from django.db.models import Count
 import random
 from django.db.models import Q
 from django.core.mail import send_mail
-from django.contrib.auth import login, authenticate,  get_user_model
+from django.contrib.auth import login, logout, authenticate,  get_user_model
 
 
 # Create your views here.
+def custom_login_required(view_func):
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            request.session['next'] = request.get_full_path()
+            return HttpResponseRedirect(reverse_lazy('login'))
+        return view_func(request, *args, **kwargs)
+    return wrapper
 
 
 def is_agent(user):
@@ -105,15 +113,19 @@ def agent_register(request):
             user.save()
 
         messages.success(request, 'Registration successful! Please check your email to verify your account.')
-        return redirect('login')  
+        return redirect('index')  
 
     return render(request, 'agent_register.html')
 
 def customer_register(request):
     if request.method == 'POST':
-        username = request.POST.get('username')
-        email = request.POST.get('email')
-        password = request.POST.get('password')
+        if not request.user.is_authenticated:
+            username = request.POST.get('username')
+            email = request.POST.get('email')
+            password = request.POST.get('password')
+        else:
+            messages.error(request, 'sorry, You are already in!')
+            return render(request, 'customer_register.html')
 
         # Check if the email already exists
         if User.objects.filter(email=email).exists():
@@ -127,12 +139,36 @@ def customer_register(request):
 
             # Log the user in and redirect
             login(request, user)
-            return redirect('login')
+            messages.success(request, f'Dear {username}, Welcome to ComfyHome')
+            return redirect('indext')
 
         except IntegrityError:
             messages.error(request, 'There was an error creating your account. Please try again.')
 
     return render(request, 'customer_register.html')
+
+def Login(request):
+    if request.method == "POST":
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(username=username, password=password)
+        
+        if user is not None:
+            login(request, user)  # Pass the user object
+            messages.info(request, f"You are now logged in as {username}.")
+            return redirect('index')  # Corrected redirection
+        else:
+            messages.error(request, "Invalid username or password.")
+            return redirect('login')  # Redirect back to login on failure
+    return render(request, 'login.html')
+        
+
+
+def log_them_out(request):
+    logout(request)
+    messages.info(request, "You have successfully logged out.")
+    return redirect('/')
+    # return HttpResponseRedirect('/')
 
 
 
@@ -222,27 +258,21 @@ def property_search(request):
         ) | properties.filter(
             state__icontains=query
         )
-
     if price_min:
-        properties = properties.filter(price__gte=price_min)
-    
+        properties = properties.filter(price__gte=price_min)    
     if price_max:
-        properties = properties.filter(price__lte=price_max)
-    
+        properties = properties.filter(price__lte=price_max)    
     if bedrooms:
-        properties = properties.filter(bedrooms__gte=bedrooms)
-    
+        properties = properties.filter(bedrooms__gte=bedrooms)    
     if bathrooms:
         properties = properties.filter(bathrooms__gte=bathrooms)
-
     context = {
         'properties': properties,
         'query': query,
         'price_min': price_min,
         'price_max': price_max,
         'bedrooms': bedrooms,
-        'bathrooms': bathrooms,
-    }
+        'bathrooms': bathrooms    }
     return render(request, 'property_search.html', context)
 
 
@@ -333,7 +363,7 @@ def property_create(request):
 
     
     
-@login_required
+@custom_login_required
 def add_vehicle(request):
     if request.method == 'POST':
         form = VehicleForm(request.POST)
@@ -346,14 +376,14 @@ def add_vehicle(request):
         form = VehicleForm()
     return render(request, 'add_vehicle.html', {'form': form})
 
-@login_required
+@custom_login_required
 def vehicle_list(request):
     vehicles = Vehicle.objects.filter(user=request.user)
     return render(request, 'vehicle_list.html', {'vehicles': vehicles})
 
 
 '''
-@login_required
+@custom_login_required
 def cost_estimation_detail(request, property_id):
     # if request.user.is_agent:
     #     return redirect('home')  # Agents should not be able to make cost estimations
@@ -502,7 +532,7 @@ from .utils import get_place_id, get_route_distance_from_place_ids
 
 logger = logging.getLogger(__name__)
 
-@login_required
+@custom_login_required
 def cost_estimation_detail(request, property_id):
     property = get_object_or_404(Property, pk=property_id)
     google_api_key = settings.GOOGLE_API_KEY
@@ -729,7 +759,7 @@ def cost_estimation_detail(request, property_id):
         return render(request, 'cost_estimation_detail.html', context)
 
 '''
-@login_required
+@custom_login_required
 def cost_estimation_detail(request, property_id):
     property = get_object_or_404(Property, pk=property_id)
     google_api_key = settings.GOOGLE_API_KEY
@@ -917,7 +947,7 @@ def cost_estimation_detail(request, property_id):
 
 
 '''''
-@login_required
+@custom_login_required
 def cost_estimation_detail(request, property_id):
     property = get_object_or_404(Property, pk=property_id)
     user = request.user
@@ -1021,7 +1051,7 @@ def cost_estimation_detail(request, property_id):
 '''''
 
 '''
-@login_required
+@custom_login_required
 def cost_estimation_detail(request, property_id):
     property = get_object_or_404(Property, pk=property_id)
     user = request.user

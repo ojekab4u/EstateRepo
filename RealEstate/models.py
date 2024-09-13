@@ -51,7 +51,6 @@ class Property(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(default=now)
     
-
     def __str__(self):
         return self.title
 
@@ -75,7 +74,7 @@ class MultipleFileInput(FileInput):
 
 class HistoricalData(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='historical_data')
-    property = models.ForeignKey('Property', on_delete=models.CASCADE)
+    property = models.ForeignKey(Property, on_delete=models.CASCADE)
     vehicle_name = models.CharField(max_length=255)
     work_location = models.CharField(max_length=255)
     work_trips_per_week = models.IntegerField()
@@ -85,14 +84,21 @@ class HistoricalData(models.Model):
     total_effective_cost = models.DecimalField(max_digits=10, decimal_places=2)
     date_field = models.DateTimeField(default=timezone.now)
     
+  
+class Vehicle(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+    fuel_consumption_rate = models.FloatField()  # e.g., liters per kilometer
+
+    def __str__(self):
+        return self.name
+
+'''
 
 class SearchHistory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='search_histories')
     search_query = models.CharField(max_length=255)
     date_field = models.DateTimeField(default=timezone.now)
-  
-
-'''
 
 class SearchHistory(models.Model):
     user = models.ForeignKey(User, related_name='search_histories', on_delete=models.CASCADE)
@@ -127,17 +133,6 @@ class CostEstimation(models.Model):
     energy_cost = models.DecimalField(max_digits=10, decimal_places=2)
     total_estimated_cost = models.DecimalField(max_digits=10, decimal_places=2)
 '''
-
-
-
-
-class Vehicle(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    name = models.CharField(max_length=100)
-    fuel_consumption_rate = models.FloatField()  # e.g., liters per kilometer
-
-    def __str__(self):
-        return self.name
     
 class UserLocation(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -145,3 +140,6 @@ class UserLocation(models.Model):
     address = models.CharField(max_length=255)
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
+
+
+

@@ -112,9 +112,6 @@ def get_geocode(address, api_key):
             'lng': location['lng']
         }
     return None
-
-
-
 def get_distance_matrix(origin_coords, destination_coords, api_key):
     origin = f"{origin_coords[0]},{origin_coords[1]}"
     destination = f"{destination_coords[0]},{destination_coords[1]}"
@@ -123,8 +120,6 @@ def get_distance_matrix(origin_coords, destination_coords, api_key):
     if response.status_code == 200:
         return response.json()
     return None
-
-
 def get_distance_matrix_with_place_id(origin_place_id, destination_place_id, api_key):
     url = f"https://maps.googleapis.com/maps/api/distancematrix/json?origins=place_id:{origin_place_id}&destinations=place_id:{destination_place_id}&key={api_key}"
     response = requests.get(url)

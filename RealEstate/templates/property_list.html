@@ -19,7 +19,13 @@
 <body>
 
     {% include "homeverse/nav.html" %}
-
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li class="message {{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
 
     <div class="container">
 

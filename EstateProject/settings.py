@@ -28,9 +28,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-j8ymzm7nn&_+9qbk$m9va4sh%24i!7m(-%f3)_88&b(g7c#8fu'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
-
 ALLOWED_HOSTS = ['*']
+DEBUG = False
+# if ALLOWED_HOSTS == ['']:
+#     DEBUG = True
+
 
 
 # Application definition
@@ -90,8 +92,7 @@ DATABASES = {
 
 AUTH_USER_MODEL = 'RealEstate.User'
 
-LOGIN_URL = '/login/'
-LOGIN_REDIRECT_URL = '/'
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators

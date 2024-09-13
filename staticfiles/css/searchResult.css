@@ -1,4 +1,4 @@
-.container {
+.container{
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
@@ -51,6 +51,7 @@
     font-weight: 500;
     padding: 8px 15px;
     transition: background-color 0.3s;
+    color:white !important;
 }
 
 .property-card .btn-primary:hover {
