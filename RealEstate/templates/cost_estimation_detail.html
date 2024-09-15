@@ -565,13 +565,13 @@
                         </div>
                     </div>
                     
-                    <button type="button" class="btn btn-primary mt-3 mb-2" onclick="updateVehicleFields()">Update Vehicle Fields</button>
+                    <button type="button" class="btn btn-light mt-3 mb-2" onclick="updateVehicleFields()">Update Vehicle Fields</button>
     
                     <div id="vehicle-fields" class="vehicle-fields-container">
                         <!-- Vehicle fields will be dynamically added here -->
                     </div>
     
-                    <button type="submit" class="btn btn-success">Estimate Costs</button>
+                    <button type="submit" class="btn btn-secondary">Estimate Costs</button>
                 </form>
     <!-- Input and Details 
                 {% if vehicle_summaries %}
@@ -682,11 +682,19 @@
                     </tbody> 
                 </table>
             </div> 
+            <div class="d-flex mt-3">
 
-            <button 
-            {% comment %} type="submit" {% endcomment %}
-             class="btn btn-success">Book This!
-            </button>
+                <a href="{% url 'property_list' %}">
+                    <button 
+                    {% comment %} type="submit" {% endcomment %}
+                    class="btn btn-secondary">Go Back!🫣
+                    </button>
+                </a>
+                <button 
+                {% comment %} type="submit" {% endcomment %}
+                 class="btn btn-secondary ms-auto">Book This!
+                </button>
+            </div>
 
         </div>
     
