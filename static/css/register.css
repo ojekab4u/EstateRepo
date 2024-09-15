@@ -12,6 +12,15 @@ form{
 .alert-messages {
     margin-bottom: 15px;
 }
+.success{
+    color: #0a3fdc;
+}
+.error{
+    color: red;
+}
+.warning{
+    color: #e64a19;
+}
 
 .alert {
     padding: 10px;

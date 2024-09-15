@@ -356,15 +356,15 @@
                 </div>
 
                 <h3 class="h3 card-title">
-                  <a href="#">Buy a home</a>
+                  <a href="{% url 'property_list' %}">Buy a home</a>
                 </h3>
 
                 <p class="card-text">
                   over 1 million+ homes for sale available on the website, we can match you with a house you will want
                   to call home.
                 </p>
-
-                <a href="#" class="card-link">
+               
+                <a href="{% url 'property_list' %}" class="card-link">
                   <span>Find A Home</span>
 
                   <ion-icon name="arrow-forward-outline"></ion-icon>
@@ -381,15 +381,15 @@
                 </div>
 
                 <h3 class="h3 card-title">
-                  <a href="#">Rent a home</a>
+                  <a href="{% url 'property_list' %}">Rent a home</a>
                 </h3>
 
                 <p class="card-text">
                   over 1 million+ homes for sale available on the website, we can match you with a house you will want
                   to call home.
                 </p>
-
-                <a href="#" class="card-link">
+                <a >
+                <a href="{% url 'property_list' %}"class="card-link">
                   <span>Find A Home</span>
 
                   <ion-icon name="arrow-forward-outline"></ion-icon>
@@ -406,7 +406,7 @@
                 </div>
 
                 <h3 class="h3 card-title">
-                  <a href="#">Sell a home</a>
+                  <a href="{% url 'property_create'%}">Sell a home</a>
                 </h3>
 
                 <p class="card-text">
@@ -414,8 +414,8 @@
                   to call home.
                 </p>
 
-                <a href="#" class="card-link">
-                  <span>Find A Home</span>
+                <a href="{% url 'property_create'%}" class="card-link">
+                  <span>Publish Property</span>
 
                   <ion-icon name="arrow-forward-outline"></ion-icon>
                 </a>
@@ -894,11 +894,13 @@
               <p class="card-text">We can help you realize your dream of a new home</p>
             </div>
 
+            <a href="{% url 'property_list' %}">
             <button class="btn_ cta-btn">
               <span>Explore Properties</span>
 
               <ion-icon name="arrow-forward-outline"></ion-icon>
             </button>
+            <a>
           </div>
 
         </div>

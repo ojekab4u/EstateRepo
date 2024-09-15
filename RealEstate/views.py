@@ -296,10 +296,11 @@ def property_detail(request, pk):
 def agent_required(user):
     return user.is_authenticated and user.is_agent
 
-@user_passes_test(agent_required)
+@custom_login_required
 def property_create(request):
     if not request.user.is_agent:
-        return redirect('index')  # Redirect to a different page or show an error message
+        messages.info(request, "Please login with agency credentials.")
+        return redirect('login')  # Redirect to a different page or show an error message
     
 
     if request.method == 'POST':
@@ -795,6 +796,7 @@ def cost_estimation_detail(request, property_id):
     house_lng = property_lat_lng['lng']
 
     if request.user.is_agent:
+        messages.info(request, "Agents are not allowed to use estimator")
         return redirect('index')  # Redirect agents to a different page as per your logic
 
     if request.method == 'POST':
@@ -881,12 +883,6 @@ def cost_estimation_detail(request, property_id):
             total_distance_all_vehicles_yearly += total_distance_for_vehicle
             # total_distance_all_vehicles_work_and_other_place_yearly = total_distance_for_vehicle_to_Other_place + total_distance_for_vehicle_to_work
 
-            # Print statements for debugging
-            # print(f"Vehicle: {vehicle.name}")
-            # print(f"Total Work Distance (Yearly): {total_work_distance}")
-            # print(f"Total Distance (Yearly) for Vehicle: {total_distance_for_vehicle}")
-            # print(f"Work Place ID: {work_place_id}")
-            # print(f"Work Distance (in km): {work_distance_in_kilometers}")
             
             vehicle_distances[vehicle.name] = {
                 'weekly': total_distance_for_vehicle / 52,
@@ -915,10 +911,6 @@ def cost_estimation_detail(request, property_id):
 
         
         
-        # Print final summary to terminal
-        # print(f"Total Transportation Cost (Yearly): {total_transportation_cost}")
-        # print(f"Effective Cost (Yearly): {effective_cost_yearly}")
-        # Debugging: Print distance covered by each vehicle
         
         for vehicle_name, distance in vehicle_distances.items():
             if vehicle_name:

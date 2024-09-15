@@ -641,6 +641,15 @@ justify-content: space-around;
   line-height: 1.8;
   margin-bottom: 25px;
 }
+.success{
+  color: #0a3fdc;
+}
+.error{
+  color: red;
+}
+.warning{
+  color: #e64a19;
+}
 
 .service-card .card-link {
   color: var(--opal);
