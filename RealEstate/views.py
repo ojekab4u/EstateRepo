@@ -532,6 +532,7 @@ from .utils import get_place_id, get_route_distance_from_place_ids
 
 logger = logging.getLogger(__name__)
 
+'''
 @custom_login_required
 def cost_estimation_detail(request, property_id):
     property = get_object_or_404(Property, pk=property_id)
@@ -548,6 +549,7 @@ def cost_estimation_detail(request, property_id):
 
     # Initialize variables to avoid UnboundLocalError
     work_location = None
+    vehicle_distances = {}
     if request.user.is_agent:
         return redirect('index')  # Redirect to a different page or show an error message
 
@@ -665,19 +667,37 @@ def cost_estimation_detail(request, property_id):
             transportation_cost = total_distance_to_work_and_other_loc * fuel_consumption_rate * current_fuel_price
             total_transportation_cost += transportation_cost
 
+            vehicle_distances[vehicle.name] = total_distance_to_work_and_other_loc 
+            
+            vehicle_distances[vehicle.name] = {
+                'weekly': total_distance_for_vehicle / 52,
+                'monthly': total_distance_for_vehicle / 12,
+                'yearly': total_distance_for_vehicle
+            }
+            
             vehicle_summaries.append({
-                'name': vehicle.name,
+                'vehicle_name': vehicle.name,
                 'work_location': car['work_location'],
                 'work_trips_per_week': work_trips_per_week,
                 'other_locations': ', '.join([f"{loc['name']}: {loc['trips_per_week']}" for loc in car['other_locations']]),
                 'total_distance': total_distance_to_work_and_other_loc,
                 'transportation_cost': transportation_cost
             })
+            
+            # vehicle_summary = {
+            #     'vehicle_name': vehicle.name,
+            #     'total_distance_weekly': total_distance_for_vehicle / 52,
+            #     'total_distance_monthly': total_distance_for_vehicle / 12,
+            #     'total_distance_yearly': total_distance_for_vehicle,
+            #     'weekly_estimate': total_distance_for_vehicle / 52 * fuel_consumption_rate * current_fuel_price,
+            #     'monthly_estimate': total_distance_for_vehicle / 12 * fuel_consumption_rate * current_fuel_price,
+            #     'yearly_estimate': total_distance_for_vehicle * fuel_consumption_rate * current_fuel_price
+            # }
 
         total_effective_cost = property.price + total_transportation_cost
 
         # Save historical data
-        '''
+      
         for car in car_details:
             HistoricalData.objects.create(
                 user=user,
@@ -690,7 +710,7 @@ def cost_estimation_detail(request, property_id):
                 transportation_cost=total_transportation_cost,
                 total_effective_cost=total_effective_cost
             )
-        '''
+        
 
                 # Calculate weekly, monthly, and yearly estimates
         yearly_distance_for_vehicle = total_distance_to_work_and_other_loc
@@ -711,6 +731,7 @@ def cost_estimation_detail(request, property_id):
         yearly_effective_cost = yearly_rent + yearly_transportation_cost
 
         # Print results to the console
+        print(f"Total Distance in km: {total_distance_to_work_and_other_loc}")
         print(f"Weekly Transportation Cost: {weekly_transportation_cost}")
         print(f"Monthly Transportation Cost: {monthly_transportation_cost}")
         print(f"Yearly Transportation Cost: {yearly_transportation_cost}")
@@ -842,6 +863,8 @@ def cost_estimation_detail(request, property_id):
             total_work_distance = work_distance_in_kilometers * Decimal(work_round_trips_per_year)
             total_distance_for_vehicle += total_work_distance
             
+            # total_distance_for_vehicle_to_work = total_work_distance
+            
             # Calculate round-trip distance for other locations
             for location in car['other_locations']:
                 loc_place_id = get_place_id(location['address'], google_api_key)
@@ -849,18 +872,21 @@ def cost_estimation_detail(request, property_id):
                 distance_in_kilometers = Decimal(distance_in_kilometers) * 2 if distance_in_kilometers else Decimal(0)
                 trips_per_week = location['trips_per_week']
                 total_distance_for_vehicle += distance_in_kilometers * Decimal(trips_per_week * 52)
-
+                
+            # total_distance_for_vehicle_to_Other_place = total_distance_for_vehicle
+                
             vehicle_distances[vehicle.name] = total_distance_for_vehicle
 
             # Add the yearly distance for this vehicle to the total distance across all vehicles
             total_distance_all_vehicles_yearly += total_distance_for_vehicle
+            # total_distance_all_vehicles_work_and_other_place_yearly = total_distance_for_vehicle_to_Other_place + total_distance_for_vehicle_to_work
 
             # Print statements for debugging
-            print(f"Vehicle: {vehicle.name}")
-            print(f"Total Work Distance (Yearly): {total_work_distance}")
-            print(f"Total Distance (Yearly) for Vehicle: {total_distance_for_vehicle}")
-            print(f"Work Place ID: {work_place_id}")
-            print(f"Work Distance (in km): {work_distance_in_kilometers}")
+            # print(f"Vehicle: {vehicle.name}")
+            # print(f"Total Work Distance (Yearly): {total_work_distance}")
+            # print(f"Total Distance (Yearly) for Vehicle: {total_distance_for_vehicle}")
+            # print(f"Work Place ID: {work_place_id}")
+            # print(f"Work Distance (in km): {work_distance_in_kilometers}")
             
             vehicle_distances[vehicle.name] = {
                 'weekly': total_distance_for_vehicle / 52,
@@ -887,26 +913,35 @@ def cost_estimation_detail(request, property_id):
         rent_monthly = property.price / 12
         rent_yearly = property.price
 
-        # Calculate effective cost (rent + transportation)
-        effective_cost_weekly = rent_weekly + (total_transportation_cost / 52)
-        effective_cost_monthly = rent_monthly + (total_transportation_cost / 12)
-        effective_cost_yearly = rent_yearly + total_transportation_cost
+        
+        
+        # Print final summary to terminal
+        # print(f"Total Transportation Cost (Yearly): {total_transportation_cost}")
+        # print(f"Effective Cost (Yearly): {effective_cost_yearly}")
+        # Debugging: Print distance covered by each vehicle
+        
+        for vehicle_name, distance in vehicle_distances.items():
+            if vehicle_name:
+                print(f"Total Distance Covered by {vehicle_name}: {distance} km")
+        total_distance_covered_ForALL = sum(distance['yearly'] for distance in vehicle_distances.values())
+        print(f"Total Distance Covered by all Vehicles: {total_distance_covered_ForALL} km")
+        print(f"Total Transportation Cost for all Vehicles: {total_transportation_cost}")
+        
+        yearly_distance_for_vehicle = total_distance_covered_ForALL
+        weekly_distance_for_vehicle = yearly_distance_for_vehicle / 52 
+        monthly_distance_for_vehicle = yearly_distance_for_vehicle/12 
+        
+        
+        # Final_total_transportation_cost = total_distance_covered_ForALL*fuel_consumption_rate * current_fuel_price
         
         total_transportation_cost_yearly = total_transportation_cost
         total_transportation_cost_monthly = total_transportation_cost/12
         total_transportation_cost_weekly = total_transportation_cost/52
         
-        yearly_distance_for_vehicle = total_distance_all_vehicles_yearly
-        weekly_distance_for_vehicle = total_distance_for_vehicle / 52 
-        monthly_distance_for_vehicle = total_distance_for_vehicle/12 
-        
-        # Print final summary to terminal
-        print(f"Total Transportation Cost (Yearly): {total_transportation_cost}")
-        print(f"Effective Cost (Yearly): {effective_cost_yearly}")
-        # Debugging: Print distance covered by each vehicle
-        
-        for vehicle_name, distance in vehicle_distances.items():
-            print(f"Total Distance Covered by {vehicle_name} in a Year: {distance} km")
+        # Calculate effective cost (rent + transportation)
+        effective_cost_weekly = rent_weekly + total_transportation_cost_weekly
+        effective_cost_monthly = rent_monthly + total_transportation_cost_monthly
+        effective_cost_yearly = rent_yearly +total_transportation_cost_yearly
         
         # Prepare the context for the template
         context = {
@@ -920,13 +955,18 @@ def cost_estimation_detail(request, property_id):
             'effective_cost_yearly': effective_cost_yearly,
             'total_transportation_cost_yearly': total_transportation_cost_yearly,
             'total_transportation_cost_monthly': total_transportation_cost_monthly,
-            'total_transportation_cost_weekly': total_transportation_cost_weekly,
+            'total_transportation_cost_weekly':  total_transportation_cost_weekly,
             'weekly_distance_for_vehicle': weekly_distance_for_vehicle,
             'monthly_distance_for_vehicle': monthly_distance_for_vehicle,
-            'yearly_distance_for_vehicle': yearly_distance_for_vehicle,
+            'yearly_distance_for_vehicle': total_distance_covered_ForALL,
             'vehicle_distances': vehicle_distances  
         }
 
+        # print(f"Vehicle: {vehicle.name}")
+        # print(f"Total Work Distance (Yearly): {total_work_distance}")
+        # print(f"Total Distance (Yearly) for Vehicle: {total_distance_for_vehicle}")
+        # print(f"Work Place ID: {work_place_id}")
+        # print(f"Work Distance (in km): {work_distance_in_kilometers}")
         return render(request, 'cost_estimation_detail.html', context)
 
     # Provide initial context when loading the page
@@ -937,9 +977,9 @@ def cost_estimation_detail(request, property_id):
         'house_lng': house_lng, 
         'google_api_key': settings.GOOGLE_API_KEY
     }
+    
     return render(request, 'cost_estimation_detail.html', context)
 
-'''
 
 
 
