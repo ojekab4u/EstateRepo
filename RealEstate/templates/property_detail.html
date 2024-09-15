@@ -83,7 +83,12 @@
     <!-- Cost Estimation Link -->
     <div class="cost-estimation-link">
         <a href="{% url 'cost_estimation_detail' property.pk %}" class="btn btn-primary">View Cost Estimation</a>
+        <button 
+        {% comment %} type="submit" {% endcomment %}
+         class="btn btn-success">Just Book!
+        </button>
     </div>
+    
 </div>
 
     <script>
