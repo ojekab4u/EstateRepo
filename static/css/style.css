@@ -615,6 +615,7 @@ justify-content: space-around;
   flex-wrap: wrap;
   justify-content: center;
   gap: 30px;
+  padding-left: 0 !important;
 }
 
 .service-card {
@@ -879,6 +880,7 @@ justify-content: space-around;
   flex-wrap: wrap;
   justify-content: center;
   gap: 50px 20px;
+  padding-left: 0 !important;
 }
 
 .features-list > li { width: calc(50% - 10px); }

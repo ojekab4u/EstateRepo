@@ -92,7 +92,7 @@ DATABASES = {
 }
 
 AUTH_USER_MODEL = 'RealEstate.User'
-
+LOGIN_URL = ("login")
 
 
 # Password validation

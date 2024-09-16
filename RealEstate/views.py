@@ -147,16 +147,16 @@ def customer_register(request):
 
     return render(request, 'customer_register.html')
 
-def Login(request):
+def UserLogin(request):
     if request.method == "POST":
         username = request.POST.get('username')
         password = request.POST.get('password')
         user = authenticate(username=username, password=password)
-        
+        next_url = request.GET.get("next")
         if user is not None:
             login(request, user)  # Pass the user object
             messages.info(request, f"You are now logged in as {username}.")
-            return redirect('index')  # Corrected redirection
+            return redirect(next_url or "index")
         else:
             messages.error(request, "Invalid username or password.")
             return redirect('login')  # Redirect back to login on failure
@@ -296,7 +296,7 @@ def property_detail(request, pk):
 def agent_required(user):
     return user.is_authenticated and user.is_agent
 
-@custom_login_required
+@login_required
 def property_create(request):
     if not request.user.is_agent:
         messages.info(request, "Please login with agency credentials.")
@@ -364,7 +364,7 @@ def property_create(request):
 
     
     
-@custom_login_required
+@login_required
 def add_vehicle(request):
     if request.method == 'POST':
         form = VehicleForm(request.POST)
@@ -377,14 +377,14 @@ def add_vehicle(request):
         form = VehicleForm()
     return render(request, 'add_vehicle.html', {'form': form})
 
-@custom_login_required
+@login_required
 def vehicle_list(request):
     vehicles = Vehicle.objects.filter(user=request.user)
     return render(request, 'vehicle_list.html', {'vehicles': vehicles})
 
 
 '''
-@custom_login_required
+@login_required
 def cost_estimation_detail(request, property_id):
     # if request.user.is_agent:
     #     return redirect('home')  # Agents should not be able to make cost estimations
@@ -534,7 +534,7 @@ from .utils import get_place_id, get_route_distance_from_place_ids
 logger = logging.getLogger(__name__)
 
 '''
-@custom_login_required
+@login_required
 def cost_estimation_detail(request, property_id):
     property = get_object_or_404(Property, pk=property_id)
     google_api_key = settings.GOOGLE_API_KEY
@@ -781,7 +781,7 @@ def cost_estimation_detail(request, property_id):
         return render(request, 'cost_estimation_detail.html', context)
 
 '''
-@custom_login_required
+@login_required
 def cost_estimation_detail(request, property_id):
     property = get_object_or_404(Property, pk=property_id)
     google_api_key = settings.GOOGLE_API_KEY
@@ -979,7 +979,7 @@ def cost_estimation_detail(request, property_id):
 
 
 '''''
-@custom_login_required
+@login_required
 def cost_estimation_detail(request, property_id):
     property = get_object_or_404(Property, pk=property_id)
     user = request.user
@@ -1083,7 +1083,7 @@ def cost_estimation_detail(request, property_id):
 '''''
 
 '''
-@custom_login_required
+@login_required
 def cost_estimation_detail(request, property_id):
     property = get_object_or_404(Property, pk=property_id)
     user = request.user
