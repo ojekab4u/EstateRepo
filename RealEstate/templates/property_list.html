@@ -1,3 +1,5 @@
+
+{% load filters %}
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -155,7 +157,7 @@
 
                 <div class="card-content">
                     <div class="card-price">
-                        <strong>₦ {{ property.price }}</strong>/Month
+                        <strong>{{ property.price|currency }}</strong>/Year
                     </div>
 
                     <h3 class="h3 card-title">

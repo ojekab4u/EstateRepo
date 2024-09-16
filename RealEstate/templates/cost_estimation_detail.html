@@ -496,8 +496,9 @@
     <script
     async 
     defer
-    src="https://maps.googleapis.com/maps/api/js?key={{ google_api_key }}&callback=initMap&libraries=places"
+    src="https://maps.googleapis.com/maps/api/js?key={{ google_api_key }}&callback=initAutocomplete&libraries=places"
     ></script>
+    
     <title>{{ property.title }}</title>
     
     
@@ -565,7 +566,7 @@
                         </div>
                     </div>
                     
-                    <button type="button" class="btn btn-light mt-3 mb-2" onclick="updateVehicleFields()">Update Vehicle Fields</button>
+                    <button type="button" class="btn btn-secondary mt-3 mb-2" onclick="updateVehicleFields()">Update Vehicle Fields</button>
     
                     <div id="vehicle-fields" class="vehicle-fields-container">
                         <!-- Vehicle fields will be dynamically added here -->
@@ -706,8 +707,15 @@
         <script>
             function initializeAutocomplete(inputId) {
                 var input = document.getElementById(inputId);
-                var autocomplete = new google.maps.places.Autocomplete(input);
+                var autocomplete = new google.maps.places.Autocomplete(input, {
+                   // rankBy: google.maps.places.RankBy.DISTANCE,
+                   // types: ['address', 'establishment', 'geocode']
+                  });
                 autocomplete.setFields(['address_components', 'geometry', 'icon', 'name']);
+                autocomplete.setBounds(new google.maps.LatLngBounds(
+                  new google.maps.LatLng(37.7749, -122.4194), // southwest corner
+                  new google.maps.LatLng(40.7128, -74.0060) // northeast corner
+                ));
             }
     
             function initAutocomplete() {
@@ -717,6 +725,9 @@
                 }
             }
             
+          
+
+
             
             function updateVehicleFields() {
                 var numCars = document.getElementById('num_cars').value;
@@ -754,7 +765,7 @@
                         <!-- Other Locations Section -->
                         <div id="other-locations-container-${i}">
                             <div id="additional-locations-${i}"></div>
-                            <button type="button" class="btn btn-secondary mb-3" onclick="addLocationField(${i})">Add Other Location</button>
+                            <button type="button" class="btn btn-light mb-3" onclick="addLocationField(${i})">Add Other Location</button>
                         </div>
                     </div>
                     `;

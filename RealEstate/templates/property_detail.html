@@ -1,4 +1,5 @@
  
+{% load filters %}
  {% load static %}
  <!DOCTYPE html>
 <html lang="en">
@@ -74,7 +75,7 @@
     <!-- Property Details -->
     <div class="property-details">
         <p><strong>Address:</strong> {{ property.address }}, {{ property.city }}, {{ property.state }} {{ property.zip_code }}</p>
-        <p><strong>Price:</strong> {{ property.price }}</p>
+        <p><strong>Price:</strong> {{ property.price|currency }}</p>
         <p><strong>Bedrooms:</strong> {{ property.bedrooms }}</p>
         <p><strong>Bathrooms:</strong> {{ property.bathrooms }}</p>
         <p><strong>Square Feet:</strong> {{ property.square_feet }}</p>
