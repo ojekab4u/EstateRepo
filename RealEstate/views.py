@@ -118,50 +118,56 @@ def agent_register(request):
     return render(request, 'agent_register.html')
 
 def customer_register(request):
+    next_url = request.GET.get('next') or request.POST.get('next')
+
     if request.method == 'POST':
         if not request.user.is_authenticated:
             username = request.POST.get('username')
             email = request.POST.get('email')
             password = request.POST.get('password')
         else:
-            messages.error(request, 'sorry, You are already in!')
-            return render(request, 'customer_register.html')
+            messages.error(request, 'Sorry, you are already logged in!')
+            return render(request, 'customer_register.html', {'next': next_url})
 
         # Check if the email already exists
         if User.objects.filter(email=email).exists():
             messages.error(request, 'A user with this email already exists.')
-            return render(request, 'customer_register.html')
+            return render(request, 'customer_register.html', {'next': next_url})
 
         try:
             # Create customer user
             user = User.objects.create_user(username=username, email=email, password=password, is_customer=True)
             user.save()
 
-            # Log the user in and redirect
+            # Log the user in and redirect to target URL or fallback to index
             login(request, user)
             messages.success(request, f'Dear {username}, Welcome to ComfyHome')
-            return redirect('indext')
+            return redirect(next_url or 'index')
 
         except IntegrityError:
             messages.error(request, 'There was an error creating your account. Please try again.')
+            return render(request, 'customer_register.html', {'next': next_url})
 
-    return render(request, 'customer_register.html')
+    return render(request, 'customer_register.html', {'next': next_url})
+
 
 def UserLogin(request):
+    next_url = request.GET.get("next") or request.POST.get("next")
+
     if request.method == "POST":
         username = request.POST.get('username')
         password = request.POST.get('password')
         user = authenticate(username=username, password=password)
-        next_url = request.GET.get("next")
+
         if user is not None:
-            login(request, user)  # Pass the user object
+            login(request, user)
             messages.info(request, f"You are now logged in as {username}.")
             return redirect(next_url or "index")
         else:
             messages.error(request, "Invalid username or password.")
-            return redirect('login')  # Redirect back to login on failure
-    return render(request, 'login.html')
-        
+            return render(request, 'login.html', {'next': next_url})
+
+    return render(request, 'login.html', {'next': next_url})
 
 
 def log_them_out(request):

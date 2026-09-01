@@ -41,29 +41,28 @@
 
 
 
-<form method="POST"  class="">
-        <h2>Login</h2>
-        {% csrf_token %}
+<form method="POST" class="">
+    <h2>Login</h2>
+    {% csrf_token %}
 
+    {% if next %}
+    <input type="hidden" name="next" value="{{ next }}">
+    {% endif %}
 
-        <div class="input-group mb-3">
-            <span class="input-group-text" id="basic-addon1"><ion-icon name="person"></ion-icon></span>
-            <input type="text" name ="username" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1">
-          </div>
+    <div class="input-group mb-3">
+        <span class="input-group-text" id="basic-addon1"><ion-icon name="person"></ion-icon></span>
+        <input type="text" name="username" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1">
+    </div>
 
+    <div class="input-group mb-3">
+        <span class="input-group-text"><ion-icon name="key"></ion-icon></span>
+        <input type="password" id="password" name="password" required class="form-control">
+        <span class="input-group-text cursor" onclick="togglePassword()"><ion-icon name="eye"></ion-icon></span>
+    </div>
 
-        <div class="input-group mb-3">
-            <span class="input-group-text"><ion-icon name="key"></ion-icon></span>
-            <input type="password" id="password" name="password" required class="form-control" >
-            <span class="input-group-text cursor" onclick="togglePassword()"><ion-icon name="eye"></ion-icon></span>
-        </div>
-
-        <input type="hidden" name="next" value="{{ request.session.next }}">
-
-
-        <button class="btn" type="submit">Login</button>
-        <p class="text-center">Don't have an account yet?<a href="{% url 'customer_register'%}">Register</a></p>
-    </form>
+    <button class="btn" type="submit">Login</button>
+    <p class="text-center">Don't have an account yet? <a href="{% url 'customer_register' %}{% if next %}?next={{ next }}{% endif %}">Register</a></p>
+</form>
 </div>
     
 
