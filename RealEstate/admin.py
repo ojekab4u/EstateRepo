@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Property, PropertyImage,  HistoricalData, Vehicle, User
+from .models import Property, PropertyImage, HistoricalData, Vehicle, User
 
 # Register your models here.
 
@@ -9,23 +9,22 @@ class PropertyImageInline(admin.TabularInline):
 
 @admin.register(Property)
 class PropertyAdmin(admin.ModelAdmin):
-    list_display = ('title', 'address', 'price', 'created_at')
+    list_display = ('title', 'address', 'price', 'sale_or_rent', 'created_at')
+    list_filter = ('sale_or_rent', 'property_type')
     search_fields = ('title', 'address')
-    inlines = [PropertyImageInline]
-
-# @admin.register(CostEstimation)
-# class CostEstimationAdmin(admin.ModelAdmin):
-#     list_display = ('property', 'commute_distance', 'total_estimated_cost')
 
 @admin.register(HistoricalData)
 class HistoricalDataAdmin(admin.ModelAdmin):
-    # list_display = ('property', 'date', 'commute_cost')
+    list_display = ('property', 'user', 'total_effective_cost', 'date_field')
     list_filter = ('user',)
 
 @admin.register(Vehicle)
 class VehicleAdmin(admin.ModelAdmin):
-    filter = ('date')
+    list_display = ('name', 'fuel_consumption_rate', 'user')
+    list_filter = ('user',)
 
 @admin.register(User)
-class User(admin.ModelAdmin):
-    filter = ('username')
+class UserAdmin(admin.ModelAdmin):
+    list_display = ('username', 'email', 'is_agent', 'is_customer')
+    list_filter = ('is_agent', 'is_customer')
+    search_fields = ('username', 'email')

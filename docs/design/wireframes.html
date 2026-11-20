@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ComfyHome 2.0 — Wireframes (matched to live design)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   ComfyHome 2.0 wireframes — visual language matched to the
+   LIVE site (comfyhome.onrender.com):
+   · navy contact strip + coral "Add Listing" (topbar)
+   · white header, centered dark nav, square white icon buttons
+   · LIGHT hero: eyebrow + huge navy Poppins heading + left-rule
+     paragraph + coral CTA + illustration
+   · orange-bordered search strip below hero
+   · cards: photo w/ location overlay, coral price, BLUE title,
+     icon feature columns, agent footer w/ square icon buttons
+   Deviations (new features only): TrueCost badge + cost-tier
+   colors (green/amber/red reserved for cost semantics).
+   ============================================================ */
+:root{
+  /* live theme tokens */
+  --jungle:#071A1D;          /* hsl(188,63%,7%)  dark-jungle-green */
+  --navy:#0B2C3C;            /* hsl(200,69%,14%) prussian-blue    */
+  --raisin:#1B1E2A;          /* hsl(227,29%,13%) */
+  --coral:#FF5A3D;           /* hsl(9,100%,62%)  orange-soda      */
+  --coral-dark:#C93C25;      /* hsl(7,72%,46%)   orange-soda (dark-mode override) */
+  --blue:#2563EB;            /* inner-page title/primary blue (bootstrap-ish) */
+  --lime:#76C520;            /* hsl(89,72%,45%)  yellow-green (sparing) */
+  --cultured:#EDEDED; --cultured2:#F4F7F8;
+  --seashell:#FEF3F1; --misty:#F5E4E2; --alice:#F0F7FF;
+  --cadet:#5E707C;           /* hsl(200,15%,43%) */
+  /* cost-tier semantics (deviation — new feature colors) */
+  --ok:#0E9F6E; --ok-bg:#E7F6F0;
+  --warn:#F59E0B; --warn-bg:#FEF3C7;
+  --trap:#DC2626; --trap-bg:#FEE2E2;
+  --ink:#0F172A;
+  --shadow-1:0 5px 20px 0 hsla(219,56%,21%,.1);
+  --shadow-2:0 16px 32px hsla(188,63%,7%,.1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Nunito Sans',sans-serif;background:#DFE4E7;color:var(--ink)}
+h1,h2,h3,h4{font-family:'Poppins',sans-serif;color:var(--navy)}
+img{max-width:100%}
+
+/* ---------- prototype shell (not part of the design) ---------- */
+.shell{display:flex;height:100vh}
+.sidebar{width:225px;background:var(--jungle);color:#fff;padding:20px 12px;overflow-y:auto;flex-shrink:0}
+.sidebar .logo{display:flex;align-items:center;gap:10px;padding:4px 10px 16px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:12px}
+.sidebar .logo-mark{width:32px;height:32px;border-radius:9px;background:var(--coral);display:grid;place-items:center;color:#fff;font-weight:800;font-size:15px}
+.sidebar .logo span{font-family:'Poppins';font-weight:700;font-size:14px}
+.sidebar .tag{font-size:10px;color:#8FA3AD;padding:10px 10px 6px;text-transform:uppercase;letter-spacing:.09em}
+.navlink{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;font-size:13px;color:#C9D6DC;cursor:pointer;margin-bottom:3px}
+.navlink:hover{background:rgba(255,255,255,.07);color:#fff}
+.navlink.active{background:var(--coral);color:#fff;font-weight:700}
+.navlink .ico{width:16px;text-align:center}
+.navlink .new{margin-left:auto;font-size:9px;background:var(--coral);color:#fff;padding:2px 6px;border-radius:20px;font-weight:800}
+.stage{flex:1;overflow-y:auto;padding:26px;display:grid;place-items:start center}
+.screen-title{text-align:center;margin-bottom:14px}
+.screen-title h2{font-size:15px;color:var(--ink)}
+.screen-title p{font-size:12px;color:var(--cadet)}
+.browser{width:100%;max-width:1140px;background:#fff;border-radius:14px;box-shadow:var(--shadow-2);overflow:hidden}
+.browser-bar{display:flex;align-items:center;gap:8px;background:var(--cultured2);border-bottom:1px solid var(--cultured);padding:9px 14px}
+.dot{width:11px;height:11px;border-radius:50%}
+.url{flex:1;background:#fff;border:1px solid var(--cultured);border-radius:8px;font-size:11.5px;color:var(--cadet);padding:5px 12px;margin-left:8px}
+.viewport{min-height:660px}
+.screen{display:none}
+.screen.active{display:block}
+
+/* ================= LIVE DESIGN LANGUAGE ================= */
+
+/* top contact strip */
+.topbar{background:var(--jungle);color:#fff;font-size:12.5px;padding:9px 28px;display:flex;align-items:center;gap:22px}
+.topbar .t{display:flex;align-items:center;gap:7px;font-weight:700}
+.topbar .t .ic{color:var(--coral)}
+.topbar .right{margin-left:auto;display:flex;align-items:center;gap:14px}
+.topbar .soc{display:flex;gap:12px;font-size:13px;color:#fff}
+.btn{display:inline-flex;align-items:center;gap:7px;border:none;cursor:pointer;font-family:'Nunito Sans';font-weight:700;font-size:13px;border-radius:6px;padding:10px 20px;transition:.2s}
+.btn.coral{background:var(--coral);color:#fff}
+.btn.coral:hover{background:var(--coral-dark)}
+.btn.blue{background:var(--blue);color:#fff}
+.btn.navy{background:var(--navy);color:#fff}
+.btn.ghost{background:#fff;border:1px solid #D6DEE3;color:var(--navy)}
+.btn.sm{padding:7px 14px;font-size:12px}
+.btn.xs{padding:5px 10px;font-size:11px;border-radius:5px}
+
+/* header */
+.header{background:#fff;padding:16px 28px;display:flex;align-items:center;gap:24px}
+.brand{display:flex;align-items:center;gap:8px;font-family:'Poppins';font-weight:800;font-size:21px;color:var(--coral)}
+.brand .house{font-size:24px}
+.navc{display:flex;gap:26px;margin:0 auto}
+.navc a{text-decoration:none;color:var(--navy);font-weight:700;font-size:14px;cursor:pointer}
+.navc a.on{color:var(--coral)}
+.iconbtns{display:flex;gap:10px}
+.sq{width:42px;height:42px;background:#fff;border:none;border-radius:4px;box-shadow:var(--shadow-1);display:grid;place-items:center;font-size:16px;color:var(--navy);cursor:pointer}
+.sq.on{background:var(--coral);color:#fff}
+
+/* hero (home) */
+.hero{background:var(--cultured2);padding:64px 56px 40px;display:grid;grid-template-columns:1.05fr .95fr;gap:30px;align-items:center}
+.eyebrow{display:flex;align-items:center;gap:8px;font-weight:800;font-size:13px;color:var(--ink);text-transform:capitalize}
+.eyebrow .h{color:var(--coral)}
+.hero h1{font-size:42px;line-height:1.15;font-weight:700;margin:10px 0 16px}
+.lede{border-left:3px solid #C9D3D9;padding-left:16px;color:var(--cadet);font-size:13.5px;line-height:1.85;max-width:430px;margin-bottom:26px}
+.hero .illus{background:linear-gradient(150deg,var(--navy),var(--jungle));border-radius:10px;min-height:290px;display:grid;place-items:center;color:#fff;font-size:64px;position:relative;overflow:hidden}
+.hero .illus small{position:absolute;bottom:12px;right:14px;font-size:9px;color:#7E97A3;font-family:'Nunito Sans';font-weight:600}
+/* orange-bordered search strip */
+.searchstrip{margin:0 28px 34px;border:2px solid var(--coral);background:#fff;padding:14px;display:flex;gap:10px;align-items:center}
+.searchstrip input,.searchstrip select{border:1px solid #D6DEE3;border-radius:6px;padding:11px 14px;font-size:13px;font-family:'Nunito Sans';outline:none}
+.searchstrip input{flex:1.4}.searchstrip select{flex:.9;color:var(--cadet)}
+
+/* section heads (homeverse style: eyebrow centered) */
+.sec{padding:26px 28px}
+.sec-head{text-align:center;margin-bottom:22px}
+.sec-head .eyebrow{justify-content:center;color:var(--cadet)}
+.sec-head h2{font-size:27px;font-weight:700;margin-top:4px}
+.sec-head p{color:var(--cadet);font-size:13px;margin-top:6px}
+
+/* property card (live inner-page pattern) */
+.grid{display:grid;gap:20px}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g2{grid-template-columns:repeat(2,1fr)}
+.pcard{background:#fff;border-radius:8px;overflow:hidden;box-shadow:var(--shadow-2)}
+.pcard .ph{height:170px;position:relative;display:grid;place-items:center;font-size:30px;color:#fff}
+.pcard .ph .loc{position:absolute;left:0;right:0;bottom:0;padding:26px 16px 12px;background:linear-gradient(transparent,rgba(7,26,29,.85));color:#fff;font-size:12px;font-weight:700;display:flex;gap:6px}
+.pcard .ph .loc .pin{color:var(--coral)}
+.pcard .bd{padding:18px 18px 0}
+.price{color:var(--coral);font-family:'Poppins';font-weight:700;font-size:19px}
+.price small{font-size:12px;font-family:'Nunito Sans';font-weight:700}
+.ptitle{color:var(--blue);font-family:'Poppins';font-weight:700;font-size:16.5px;margin:3px 0 8px;cursor:pointer}
+.pdesc{color:var(--cadet);font-size:12.5px;line-height:1.7}
+.feats{display:flex;margin:16px 0;border-top:1px solid var(--cultured);border-bottom:1px solid var(--cultured)}
+.feat{flex:1;text-align:center;padding:10px 4px;border-right:1px solid var(--cultured)}
+.feat:last-child{border-right:none}
+.feat b{font-family:'Poppins';font-size:15px;color:var(--navy);display:block}
+.feat .n{font-size:15px;color:var(--cadet)}
+.feat span{font-size:11px;color:var(--cadet)}
+.pfoot{display:flex;align-items:center;gap:10px;background:var(--cultured2);padding:10px 14px}
+.pfoot .av{width:34px;height:34px;border-radius:50%;background:var(--misty);display:grid;place-items:center;font-size:14px}
+.pfoot .an{color:var(--blue);font-weight:800;font-size:13.5px}
+.pfoot .au{color:var(--cadet);font-size:11px}
+.pfoot .acts{margin-left:auto;display:flex;gap:8px}
+.sq.sm{width:32px;height:32px;font-size:12px;background:var(--cultured2);border:1px solid var(--cultured);box-shadow:none}
+
+/* true-cost badge (NEW deviation) */
+.tc{display:inline-flex;flex-direction:column;gap:1px;background:var(--ok);color:#fff;border-radius:6px;padding:7px 12px}
+.tc .l{font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;opacity:.9}
+.tc .v{font-family:'Poppins';font-weight:700;font-size:14px;line-height:1.1}
+.tc.warn{background:var(--warn)}
+.tc.trap{background:var(--trap)}
+.tc.inline{display:inline-flex;flex-direction:row;align-items:baseline;gap:6px;padding:5px 10px}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;padding:4px 10px;border-radius:4px}
+.chip.ok{background:var(--ok-bg);color:var(--ok)}
+.chip.warn{background:var(--warn-bg);color:#B45309}
+.chip.trap{background:var(--trap-bg);color:var(--trap)}
+.chip.grey{background:var(--cultured);color:var(--cadet)}
+.chip.blue{background:var(--alice);color:var(--blue)}
+
+/* page band (inner pages) */
+.band{padding:34px 28px 8px}
+.band h1{font-size:34px;font-weight:700}
+.band .crumb{font-size:12px;color:var(--cadet);margin-top:2px}
+
+/* panels & forms */
+.panel{background:#fff;border-radius:8px;box-shadow:var(--shadow-2)}
+.field label{display:block;font-size:12px;font-weight:800;color:var(--navy);margin-bottom:5px}
+.field input,.field select{width:100%;border:1px solid #D6DEE3;border-radius:6px;padding:10px 12px;font-size:13px;font-family:'Nunito Sans';outline:none}
+.field input:focus{border-color:var(--coral);box-shadow:0 0 0 3px rgba(255,90,61,.13)}
+.hint{font-size:11px;color:var(--cadet);margin-top:4px}
+
+/* map */
+.map{background:linear-gradient(135deg,#DFEBE2,#CBE0D0);border-radius:8px;position:relative;min-height:280px;overflow:hidden}
+.map .pin{position:absolute;transform:translate(-50%,-100%);font-size:18px}
+.map .pin.me{font-size:24px}
+.map-legend{position:absolute;bottom:10px;left:10px;background:#fff;border-radius:6px;padding:7px 11px;font-size:10.5px;box-shadow:var(--shadow-1);display:flex;gap:11px}
+
+/* estimator */
+.vrow{display:flex;gap:12px;align-items:flex-end;background:var(--cultured2);border-radius:6px;padding:13px;margin-bottom:11px}
+.rrow{display:grid;gap:10px;padding:11px 14px;border-bottom:1px solid var(--cultured);font-size:12.5px;align-items:center}
+.rrow.head{background:var(--navy);color:#fff;font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;border-radius:6px 6px 0 0}
+.rrow.total{background:var(--alice);font-weight:800;border-bottom:none;border-radius:0 0 6px 6px}
+.num{font-variant-numeric:tabular-nums}
+
+/* comparison */
+.cmp{border:2px solid var(--cultured);border-radius:8px;overflow:hidden;background:#fff;box-shadow:var(--shadow-2)}
+.cmp.win{border-color:var(--ok)}
+.cmp .top{padding:14px 16px;border-bottom:1px solid var(--cultured)}
+.cmp .r{display:flex;justify-content:space-between;align-items:center;padding:8px 16px;border-bottom:1px dashed var(--cultured);font-size:12.5px}
+.cmp .r:last-child{border-bottom:none}
+.ctable{width:100%;border-collapse:collapse;font-size:12.5px}
+.ctable th{background:var(--navy);color:#fff;padding:10px 12px;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;text-align:left}
+.ctable td{padding:11px 12px;border-bottom:1px solid var(--cultured)}
+.ctable td.best{background:var(--ok-bg);font-weight:800;color:var(--ok)}
+.ctable td.worst{background:var(--trap-bg);color:var(--trap)}
+
+/* stats band (dashboard) */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
+.stat{background:#fff;border-radius:8px;padding:16px 18px;box-shadow:var(--shadow-2)}
+.stat .l{font-size:11px;color:var(--cadet);font-weight:700}
+.stat .v{font-family:'Poppins';font-size:21px;font-weight:700;color:var(--navy);margin-top:3px}
+.stat .s{font-size:10.5px;margin-top:2px}
+
+/* auth */
+.auth{display:grid;grid-template-columns:1fr 1fr;min-height:660px}
+.auth .left{background:var(--jungle);color:#fff;padding:54px 44px;display:flex;flex-direction:column;justify-content:center}
+.auth .left h2{color:#fff;font-size:28px;margin:12px 0 12px}
+.auth .left p{color:#B9C8CF;font-size:13.5px;line-height:1.85;margin-bottom:20px}
+.auth .left ul{list-style:none;font-size:12.5px;line-height:2.3;color:#DFE7EB}
+.auth .right{padding:54px 44px;display:flex;flex-direction:column;justify-content:center;background:var(--cultured2)}
+
+/* footer */
+.foot{background:var(--jungle);color:#fff;padding:36px 28px 20px}
+.foot .cols{display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;gap:24px;margin-bottom:24px}
+.foot h4{color:#fff;font-size:14px;margin-bottom:12px}
+.foot .fc{color:#B9C8CF;font-size:12px;line-height:2}
+.foot .base{border-top:1px solid rgba(255,255,255,.1);padding-top:14px;font-size:11px;color:#8FA3AD;display:flex;justify-content:space-between}
+
+/* callout */
+.note{border-left:4px solid var(--coral);background:var(--seashell);padding:12px 16px;border-radius:0 6px 6px 0;font-size:12.5px;color:var(--coral-dark);margin:14px 0}
+.note.ok{border-color:var(--ok);background:var(--ok-bg);color:#067A53}
+.note.blue{border-color:var(--blue);background:var(--alice);color:#1D4ED8}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="logo"><div class="logo-mark">CH</div><span>ComfyHome 2.0</span></div>
+    <div class="tag">Core screens</div>
+    <div class="navlink active" data-s="s1"><span class="ico">⌂</span> Home</div>
+    <div class="navlink" data-s="s2"><span class="ico">⌕</span> Properties</div>
+    <div class="navlink" data-s="s3"><span class="ico">▤</span> Property Detail</div>
+    <div class="navlink" data-s="s4"><span class="ico">∫</span> Cost Estimator</div>
+    <div class="tag">New features</div>
+    <div class="navlink" data-s="s5"><span class="ico">⇄</span> True-Cost Compare <span class="new">NEW</span></div>
+    <div class="navlink" data-s="s6"><span class="ico">★</span> Saved Estimates <span class="new">NEW</span></div>
+    <div class="navlink" data-s="s7"><span class="ico">◉</span> Agent Dashboard <span class="new">NEW</span></div>
+    <div class="navlink" data-s="s8"><span class="ico">+</span> Create Listing</div>
+    <div class="tag">Auth</div>
+    <div class="navlink" data-s="s9"><span class="ico">→]</span> Login / Register</div>
+  </aside>
+
+  <main class="stage">
+    <div class="screen-title"><h2 id="scrName">Home</h2><p id="scrDesc">Matches live homeverse design: light hero, navy strip, coral CTA</p></div>
+    <div class="browser">
+      <div class="browser-bar">
+        <span class="dot" style="background:#F87171"></span><span class="dot" style="background:#FBBF24"></span><span class="dot" style="background:#34D399"></span>
+        <div class="url" id="urlBar">comfyhome.onrender.com/</div>
+      </div>
+      <div class="viewport">
+
+      <!-- ============ HOME ============ -->
+      <section class="screen active" id="s1">
+        <div class="topbar">
+          <span class="t"><span class="ic">✉</span> info@comfyhome.com</span>
+          <span class="t"><span class="ic">📍</span> 15, Odo Ona Ibadan, Nigeria</span>
+          <div class="right"><span class="soc">f t ⓘ p</span><button class="btn coral sm" data-go="s8">Add Listing</button></div>
+        </div>
+        <div class="header">
+          <div class="brand"><span class="house">🏠</span>ComfyHome</div>
+          <div class="navc"><a class="on">Home</a><a data-go="s2">Property</a><a data-go="s4">True Cost</a><a>Service</a><a>Blog</a><a>Contact</a></div>
+          <div class="iconbtns"><button class="sq">⌕</button><button class="sq" data-go="s9">👤</button><button class="sq on">🏠</button></div>
+        </div>
+
+        <div class="hero">
+          <div>
+            <div class="eyebrow"><span class="h">🏠</span> True-Cost Real Estate Platform</div>
+            <h1>Know The Real Cost Of A Home Before You Rent</h1>
+            <p class="lede">Rent is only half the story. ComfyHome shows rent <b>+ commute + power</b> — your true cost of living — for every property, so a cheaper address never becomes an expensive mistake.</p>
+            <button class="btn coral" data-go="s2">Start True-Cost Search</button>
+          </div>
+          <div class="illus">🏘️<small>hero illustration (existing asset)</small></div>
+        </div>
+        <div class="searchstrip">
+          <input placeholder="Search Keyword — area, city, landmark">
+          <select><option>Purpose: Rent</option><option>Purpose: Buy</option></select>
+          <select><option>Max true cost: any</option><option>≤ ₦1.5M / yr</option><option>≤ ₦2.5M / yr</option><option>≤ ₦4M / yr</option></select>
+          <button class="btn coral" data-go="s2">🔍 Search</button>
+        </div>
+
+        <div class="sec">
+          <div class="sec-head">
+            <div class="eyebrow"><span class="h">⌂</span> Featured Properties</div>
+            <h2>Priced By True Cost, Not Just Rent</h2>
+            <p>Every listing carries its estimated yearly cost of living — powered by Google Maps</p>
+          </div>
+          <div class="grid g3">
+            <div class="pcard" data-go="s3">
+              <div class="ph" style="background:linear-gradient(150deg,#1F4E5F,#0B2C3C)">🏢<div class="loc"><span class="pin">📍</span> Aboke Phase 2, Odo Ona, Ibadan</div></div>
+              <div class="bd">
+                <span class="price">₦200,000<small>/Year</small></span>
+                <div class="ptitle">2 Bedroom Flat</div>
+                <p class="pdesc">2 bedroom flat with 10 feet fence, golden gate, prepaid meter…</p>
+                <div class="feats">
+                  <div class="feat"><b>2</b><span>Bedrooms</span></div>
+                  <div class="feat"><b>2</b><span>Bathrooms</span></div>
+                  <div class="feat"><b>300</b><span>Square Ft</span></div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;margin:0 0 14px">
+                  <span class="tc inline"><span class="l">True cost</span><span class="v">₦541,000/yr</span></span>
+                  <span class="chip ok">🚗 2.8 km commute</span>
+                </div>
+              </div>
+              <div class="pfoot"><div class="av">👤</div><div><div class="an">Agent Name</div><div class="au">admin</div></div><div class="acts"><button class="sq sm">⤢</button><button class="sq sm">♡</button><button class="sq sm">＋</button></div></div>
+            </div>
+            <div class="pcard" data-go="s3">
+              <div class="ph" style="background:linear-gradient(150deg,#2C4A66,#122B3C)">🏠<div class="loc"><span class="pin">📍</span> Covenant Supermarket, Odo-Ona Kekere</div></div>
+              <div class="bd">
+                <span class="price">₦150,000<small>/Year</small></span>
+                <div class="ptitle">Self Contain</div>
+                <p class="pdesc">Self contain apartment, all needed infrastructures confirmed available…</p>
+                <div class="feats">
+                  <div class="feat"><b>1</b><span>Bedroom</span></div>
+                  <div class="feat"><b>1</b><span>Bathroom</span></div>
+                  <div class="feat"><b>240</b><span>Square Ft</span></div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;margin:0 0 14px">
+                  <span class="tc inline warn"><span class="l">True cost</span><span class="v">₦492,000/yr</span></span>
+                  <span class="chip warn">🚗 9.1 km commute</span>
+                </div>
+              </div>
+              <div class="pfoot"><div class="av">👤</div><div><div class="an">Agent Name</div><div class="au">admin</div></div><div class="acts"><button class="sq sm">⤢</button><button class="sq sm">♡</button><button class="sq sm">＋</button></div></div>
+            </div>
+            <div class="pcard" data-go="s3">
+              <div class="ph" style="background:linear-gradient(150deg,#3A5A70,#1E3A4C)">🏡<div class="loc"><span class="pin">📍</span> Moniya, Ibadan</div></div>
+              <div class="bd">
+                <span class="price">₦450,000<small>/Year</small></span>
+                <div class="ptitle">Mini Flat</div>
+                <p class="pdesc">Brand new mini flat in a quiet estate, borehole and security…</p>
+                <div class="feats">
+                  <div class="feat"><b>1</b><span>Bedroom</span></div>
+                  <div class="feat"><b>1</b><span>Bathroom</span></div>
+                  <div class="feat"><b>450</b><span>Square Ft</span></div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;margin:0 0 14px">
+                  <span class="tc inline trap"><span class="l">True cost</span><span class="v">₦1.47M/yr</span></span>
+                  <span class="chip trap">🚗 34 km commute</span>
+                </div>
+              </div>
+              <div class="pfoot"><div class="av">👤</div><div><div class="an">Agent Name</div><div class="au">admin</div></div><div class="acts"><button class="sq sm">⤢</button><button class="sq sm">♡</button><button class="sq sm">＋</button></div></div>
+            </div>
+          </div>
+          <div class="note ok">💡 <b>Why the Moniya flat "costs" more than it looks:</b> ₦450k rent — but a daily 34 km commute adds ~₦1M/yr in fuel. The true-cost badge shows this <i>before</i> you sign. (Research-proven: users save ~20%/yr deciding on true cost — <a style="color:inherit" href="https://doi.org/10.5281/zenodo.18474673">our published study</a>.)</div>
+        </div>
+
+        <div class="sec" style="padding-top:0">
+          <div class="sec-head">
+            <div class="eyebrow"><span class="h">∫</span> How It Works</div>
+            <h2>Three Steps To Your Real Budget</h2>
+          </div>
+          <div class="grid g3">
+            <div class="panel" style="padding:20px;text-align:center">
+              <div style="width:46px;height:46px;border-radius:8px;background:var(--coral);color:#fff;display:grid;place-items:center;font-family:'Poppins';font-weight:700;font-size:18px;margin:0 auto 12px">1</div>
+              <b style="font-size:14px">Tell us your life</b><p style="font-size:12px;color:var(--cadet);margin-top:6px">Workplace(s), vehicle(s), fuel price, weekly trips.</p></div>
+            <div class="panel" style="padding:20px;text-align:center">
+              <div style="width:46px;height:46px;border-radius:8px;background:var(--coral);color:#fff;display:grid;place-items:center;font-family:'Poppins';font-weight:700;font-size:18px;margin:0 auto 12px">2</div>
+              <b style="font-size:14px">We compute the truth</b><p style="font-size:12px;color:var(--cadet);margin-top:6px">Google Maps routes every trip; rent + transport + power = true cost.</p></div>
+            <div class="panel" style="padding:20px;text-align:center">
+              <div style="width:46px;height:46px;border-radius:8px;background:var(--coral);color:#fff;display:grid;place-items:center;font-family:'Poppins';font-weight:700;font-size:18px;margin:0 auto 12px">3</div>
+              <b style="font-size:14px">Compare &amp; decide</b><p style="font-size:12px;color:var(--cadet);margin-top:6px">Side-by-side true-cost comparison, saved estimates, share with family.</p></div>
+          </div>
+        </div>
+
+        <div class="foot">
+          <div class="cols">
+            <div><div class="brand" style="font-size:18px"><span class="house">🏠</span>ComfyHome</div><p class="fc" style="margin-top:10px">True-cost housing search for Nigeria. Rent + commute + power = what a home really costs.</p></div>
+            <div><h4>Quick Links</h4><div class="fc">Home · Property · True Cost · Service · Blog</div></div>
+            <div><h4>For Agents</h4><div class="fc">Add Listing · Agent Dashboard · Verification</div></div>
+            <div><h4>Contact</h4><div class="fc">info@comfyhome.com<br>15, Odo Ona Ibadan, Nigeria</div></div>
+          </div>
+          <div class="base"><span>© 2026 ComfyHome</span><span>Research: DOI 10.5281/zenodo.18474673</span></div>
+        </div>
+      </section>
+
+      <!-- ============ PROPERTIES ============ -->
+      <section class="screen" id="s2">
+        <div class="topbar">
+          <span class="t"><span class="ic">✉</span> info@comfyhome.com</span><span class="t"><span class="ic">📍</span> 15, Odo Ona Ibadan, Nigeria</span>
+          <div class="right"><span class="soc">f t ⓘ p</span><button class="btn coral sm" data-go="s8">Add Listing</button></div>
+        </div>
+        <div class="header">
+          <div class="brand"><span class="house">🏠</span>ComfyHome</div>
+          <div class="navc"><a data-go="s1">Home</a><a class="on">Property</a><a data-go="s4">True Cost</a><a>Service</a><a>Blog</a></div>
+          <div class="iconbtns"><button class="sq">⌕</button><button class="sq" data-go="s9">👤</button><button class="sq on">🏠</button></div>
+        </div>
+        <div class="band"><h1>List of Properties</h1><div class="crumb">Home › Property · <b>sorted by lowest true cost ▾</b></div></div>
+        <div class="sec" style="padding-top:14px;display:grid;grid-template-columns:290px 1fr;gap:22px">
+          <!-- filters -->
+          <aside class="panel" style="padding:18px;height:fit-content">
+            <b style="font-size:14px">Filters</b>
+            <div class="field" style="margin-top:12px"><label>Search</label><input placeholder="Area, city…"></div>
+            <div class="field"><label>Min Price (₦/yr)</label><input placeholder="Min Price"></div>
+            <div class="field"><label>Max Price (₦/yr)</label><input placeholder="Max Price"></div>
+            <div class="field"><label>Max TRUE cost (₦/yr)</label><input type="range" style="width:100%;accent-color:var(--coral)"><div class="hint">≤ ₦2,000,000 · new filter</div></div>
+            <div class="field"><label>Bedrooms</label><input placeholder="Bedrooms"></div>
+            <div class="field"><label>Bathrooms</label><input placeholder="Bathrooms"></div>
+            <div class="field"><label>Property type</label><select><option>All types</option><option>Flat</option><option>Self contain</option><option>Duplex</option></select></div>
+            <div class="field"><label>Commute to (work)</label><input placeholder="📍 Start typing address…"><div class="hint">powers true-cost sorting</div></div>
+            <button class="btn blue" style="width:100%;justify-content:center">Apply Filters</button>
+            <div class="row" style="display:flex;gap:8px;margin-top:12px;justify-content:center">
+              <button class="btn blue sm" style="flex:1;justify-content:center">For Rent</button>
+              <button class="btn ghost sm" style="flex:1;justify-content:center">For Sale</button>
+            </div>
+          </aside>
+          <!-- results -->
+          <main>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+              <b style="font-size:14px;color:var(--navy)">All Properties – (7)</b>
+              <span style="display:flex;gap:8px"><span class="chip ok">✓ True-cost mode ON</span><span class="chip grey">List ▾</span><span class="chip grey">Map</span></span>
+            </div>
+            <div class="grid g2">
+              <div class="pcard" data-go="s3">
+                <div class="ph" style="background:linear-gradient(150deg,#1F4E5F,#0B2C3C)">🏢<div class="loc"><span class="pin">📍</span> Aboke Phase 2, Odo Ona, Ibadan</div></div>
+                <div class="bd">
+                  <span class="price">₦200,000<small>/Year</small></span><div class="ptitle">2 Bedroom Flat</div>
+                  <div class="feats"><div class="feat"><b>2</b><span>Bedrooms</span></div><div class="feat"><b>2</b><span>Bathrooms</span></div><div class="feat"><b>300</b><span>Sq Ft</span></div><div class="feat"><b>5.6</b><span>Km round-trip</span></div></div>
+                  <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px"><span class="tc inline"><span class="l">True cost</span><span class="v">₦541,000/yr</span></span><span class="chip ok">⭐ 91 amenities</span></div>
+                </div>
+                <div class="pfoot"><div class="av">👤</div><div><div class="an">Agent Name</div><div class="au">admin</div></div><div class="acts"><button class="sq sm">⤢</button><button class="sq sm">♡</button><button class="sq sm" data-go="s5">⇄</button></div></div>
+              </div>
+              <div class="pcard" data-go="s3">
+                <div class="ph" style="background:linear-gradient(150deg,#3A5A70,#1E3A4C)">🏡<div class="loc"><span class="pin">📍</span> Moniya, Ibadan</div></div>
+                <div class="bd">
+                  <span class="price">₦450,000<small>/Year</small></span><div class="ptitle">Mini Flat</div>
+                  <div class="feats"><div class="feat"><b>1</b><span>Bedroom</span></div><div class="feat"><b>1</b><span>Bathroom</span></div><div class="feat"><b>450</b><span>Sq Ft</span></div><div class="feat"><b>68</b><span>Km round-trip</span></div></div>
+                  <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px"><span class="tc inline trap"><span class="l">True cost</span><span class="v">₦1.47M/yr</span></span><span class="chip warn">⭐ 71 amenities</span></div>
+                </div>
+                <div class="pfoot"><div class="av">👤</div><div><div class="an">Agent Name</div><div class="au">admin</div></div><div class="acts"><button class="sq sm">⤢</button><button class="sq sm">♡</button><button class="sq sm" data-go="s5">⇄</button></div></div>
+              </div>
+              <div class="pcard" data-go="s3">
+                <div class="ph" style="background:linear-gradient(150deg,#2C4A66,#122B3C)">🏠<div class="loc"><span class="pin">📍</span> Agbowo, UI Area</div></div>
+                <div class="bd">
+                  <span class="price">₦700,000<small>/Year</small></span><div class="ptitle">Self Contain</div>
+                  <div class="feats"><div class="feat"><b>1</b><span>Bedroom</span></div><div class="feat"><b>1</b><span>Bathroom</span></div><div class="feat"><b>480</b><span>Sq Ft</span></div><div class="feat"><b>6.2</b><span>Km round-trip</span></div></div>
+                  <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px"><span class="tc inline"><span class="l">True cost</span><span class="v">₦927,000/yr</span></span><span class="chip ok">⭐ 97 amenities</span></div>
+                </div>
+                <div class="pfoot"><div class="av">👤</div><div><div class="an">Agent Name</div><div class="au">admin</div></div><div class="acts"><button class="sq sm">⤢</button><button class="sq sm">♡</button><button class="sq sm" data-go="s5">⇄</button></div></div>
+              </div>
+              <div class="pcard" data-go="s3">
+                <div class="ph" style="background:linear-gradient(150deg,#24435C,#0F2A3E)">🏘️<div class="loc"><span class="pin">📍</span> Old Bodija, Ibadan</div></div>
+                <div class="bd">
+                  <span class="price">₦1,800,000<small>/Year</small></span><div class="ptitle">3 Bedroom Duplex</div>
+                  <div class="feats"><div class="feat"><b>3</b><span>Bedrooms</span></div><div class="feat"><b>4</b><span>Bathrooms</span></div><div class="feat"><b>180</b><span>m²</span></div><div class="feat"><b>28</b><span>Km round-trip</span></div></div>
+                  <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px"><span class="tc inline warn"><span class="l">True cost</span><span class="v">₦2.28M/yr</span></span><span class="chip ok">⭐ 95 amenities</span></div>
+                </div>
+                <div class="pfoot"><div class="av">👤</div><div><div class="an">Agent Name</div><div class="au">admin</div></div><div class="acts"><button class="sq sm">⤢</button><button class="sq sm">♡</button><button class="sq sm" data-go="s5">⇄</button></div></div>
+              </div>
+            </div>
+            <div style="text-align:center;margin:20px 0"><button class="btn ghost sm">Load more</button> <span class="hint">Page 1/2 · true-cost sort applied</span></div>
+          </main>
+        </div>
+      </section>
+
+      <!-- ============ PROPERTY DETAIL ============ -->
+      <section class="screen" id="s3">
+        <div class="topbar">
+          <span class="t"><span class="ic">✉</span> info@comfyhome.com</span><span class="t"><span class="ic">📍</span> 15, Odo Ona Ibadan, Nigeria</span>
+          <div class="right"><span class="soc">f t ⓘ p</span><button class="btn coral sm" data-go="s8">Add Listing</button></div>
+        </div>
+        <div class="header">
+          <div class="brand"><span class="house">🏠</span>ComfyHome</div>
+          <div class="navc"><a data-go="s1">Home</a><a class="on">Property</a><a data-go="s4">True Cost</a><a>Service</a><a>Blog</a></div>
+          <div class="iconbtns"><button class="sq">⌕</button><button class="sq" data-go="s9">👤</button><button class="sq on">🏠</button></div>
+        </div>
+        <div class="band"><h1>2 Bedroom Flat</h1><div class="crumb">‹ back to properties &nbsp;·&nbsp; Property › Ibadan › Odo Ona</div></div>
+        <div class="sec" style="padding-top:10px;display:grid;grid-template-columns:1.55fr 1fr;gap:22px">
+          <div>
+            <div class="grid" style="grid-template-columns:2fr 1fr;gap:10px">
+              <div style="background:linear-gradient(150deg,#1F4E5F,#0B2C3C);border-radius:8px;min-height:240px;display:grid;place-items:center;color:#fff;font-size:34px">🛋<small style="position:absolute"></small></div>
+              <div class="grid" style="grid-template-rows:1fr 1fr;gap:10px">
+                <div style="background:linear-gradient(150deg,#2C4A66,#122B3C);border-radius:8px;display:grid;place-items:center;color:#fff">🛏</div>
+                <div style="background:var(--navy);border-radius:8px;display:grid;place-items:center;color:#fff;font-size:12px;font-weight:700">+ 6 photos</div>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:16px">
+              <div>
+                <span class="price">₦200,000<small>/Year</small></span>
+                <div class="ptitle" style="font-size:20px">2 Bedroom Flat</div>
+                <div style="font-size:12.5px;color:var(--cadet)">📍 Aboke Phase 2, Odo ona area, Oluyole estate, Ibadan, Oyo 200261</div>
+              </div>
+              <span class="chip ok">✓ Verified listing</span>
+            </div>
+            <div class="feats" style="margin-top:14px">
+              <div class="feat"><b>2</b><span>Bedrooms</span></div>
+              <div class="feat"><b>2</b><span>Bathrooms</span></div>
+              <div class="feat"><b>300</b><span>Square Ft</span></div>
+              <div class="feat"><b>2.8</b><span>Km to work</span></div>
+              <div class="feat"><b>91</b><span>Amenity score</span></div>
+            </div>
+            <p style="font-size:13px;color:var(--cadet);line-height:1.85;margin-top:14px">2 bedroom flat with 10 feet fence, golden gate, prepaid meter and borehole. Landlord accepts two instalments (60/40). <b style="color:var(--navy)">Fix on live site:</b> the map here currently shows a Google "REQUEST_DENIED" alert and development watermark — API key needs billing/referrer restriction; we'll geocode server-side instead.</p>
+
+            <div class="sec-head" style="text-align:left;margin-top:20px"><div class="eyebrow"><span class="h">📍</span> What's Nearby</div><h2 style="font-size:21px">Amenities &amp; Proximity</h2></div>
+            <div class="grid g2">
+              <div class="panel" style="padding:16px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:13px">Facilities within 2 km</b><span class="chip ok">Score 91</span></div>
+                <div style="font-size:12.5px;color:var(--cadet);line-height:2.1">
+                  🏥 Ring Road Health Centre — <b style="color:var(--navy)">1.8 km</b><br>
+                  🏫 Bishop Philips Academy — <b style="color:var(--navy)">0.9 km</b><br>
+                  🛒 Bodija Market — <b style="color:var(--navy)">2.4 km</b><br>
+                  🏧 Access Bank ATM — <b style="color:var(--navy)">0.4 km</b><br>
+                  ⛪ Chapel — <b style="color:var(--navy)">1.1 km</b>
+                </div>
+              </div>
+              <div class="map" style="min-height:210px">
+                <span class="pin me" style="left:48%;top:44%">📍</span>
+                <span class="pin" style="left:26%;top:24%">🏥</span><span class="pin" style="left:70%;top:30%">🏫</span>
+                <span class="pin" style="left:62%;top:66%">🛒</span><span class="pin" style="left:30%;top:70%">🏧</span>
+                <div class="map-legend"><span>📍 Property</span><span>🏥 Health</span><span>🏫 School</span><span>🛒 Market</span></div>
+              </div>
+            </div>
+          </div>
+
+          <aside>
+            <div class="panel" style="padding:20px;position:sticky;top:16px">
+              <b style="font-size:14px">💰 True Cost of Living</b>
+              <div class="hint" style="margin:2px 0 12px">for 1 car · commute to Ring Road · 10 trips/wk · petrol ₦998/L</div>
+              <div style="background:var(--ok);color:#fff;border-radius:8px;padding:14px 16px">
+                <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;opacity:.9">Total true cost / year</div>
+                <div style="font-family:'Poppins';font-weight:700;font-size:23px">₦541,200</div>
+                <div style="height:5px;border-radius:3px;background:rgba(255,255,255,.35);margin-top:8px;overflow:hidden;display:flex"><i style="width:37%;background:#fff"></i><i style="width:63%;background:rgba(255,255,255,.55)"></i></div>
+                <div style="font-size:9px;font-weight:800;text-transform:uppercase;opacity:.9;margin-top:5px">Rent 37% · Transport 63%*</div>
+              </div>
+              <table style="width:100%;font-size:12.5px;margin-top:12px;border-collapse:collapse">
+                <tr><td style="padding:6px 0;color:var(--cadet)">Rent / month</td><td style="text-align:right;font-weight:800" class="num">₦16,667</td></tr>
+                <tr><td style="padding:6px 0;color:var(--cadet)">Transport / month</td><td style="text-align:right;font-weight:800" class="num">₦28,500</td></tr>
+                <tr><td style="padding:6px 0;color:var(--cadet)">⚡ Power est. / month</td><td style="text-align:right;font-weight:800" class="num">₦12,000</td></tr>
+                <tr style="border-top:2px solid var(--cultured)"><td style="padding:8px 0;font-weight:800;color:var(--navy)">Total / month</td><td style="text-align:right;font-weight:800;color:var(--ok)" class="num">₦57,167</td></tr>
+              </table>
+              <div style="display:flex;gap:8px;margin-top:14px">
+                <button class="btn coral sm" style="flex:1;justify-content:center" data-go="s4">∫ Run full estimate</button>
+                <button class="btn ghost sm" style="flex:1;justify-content:center" data-go="s5">⇄ Compare</button>
+              </div>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <button class="btn ghost sm" style="flex:1;justify-content:center">♡ Save</button>
+                <button class="btn ghost sm" style="flex:1;justify-content:center">📤 Share</button>
+              </div>
+              <div style="border-top:1px solid var(--cultured);margin-top:16px;padding-top:14px">
+                <div style="display:flex;gap:10px;align-items:center">
+                  <div style="width:36px;height:36px;border-radius:50%;background:var(--misty);display:grid;place-items:center">👤</div>
+                  <div><b style="font-size:12.5px;color:var(--blue)">Agent Name</b><div class="hint">admin · ⭐ 4.8 · replies ~2 h</div></div>
+                </div>
+                <button class="btn navy sm" style="width:100%;justify-content:center;margin-top:10px">📅 Request Inspection</button>
+                <div class="hint" style="text-align:center;margin-top:6px">replaces the dead "Just Book!" button</div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ============ ESTIMATOR ============ -->
+      <section class="screen" id="s4">
+        <div class="topbar">
+          <span class="t"><span class="ic">✉</span> info@comfyhome.com</span><span class="t"><span class="ic">📍</span> 15, Odo Ona Ibadan, Nigeria</span>
+          <div class="right"><span class="soc">f t ⓘ p</span><button class="btn coral sm" data-go="s8">Add Listing</button></div>
+        </div>
+        <div class="header">
+          <div class="brand"><span class="house">🏠</span>ComfyHome</div>
+          <div class="navc"><a data-go="s1">Home</a><a>Property</a><a class="on">True Cost</a><a>Service</a><a>Blog</a></div>
+          <div class="iconbtns"><button class="sq">⌕</button><button class="sq" data-go="s9">👤</button><button class="sq on">🏠</button></div>
+        </div>
+        <div class="band"><h1>Cost Estimation</h1><div class="crumb">for: 2 Bedroom Flat, Aboke Phase 2 · geocoded 7.3986°N, 3.9102°E (cached)</div></div>
+        <div class="sec" style="padding-top:10px;display:grid;grid-template-columns:1.2fr 1fr;gap:22px">
+          <div>
+            <div class="panel" style="padding:18px">
+              <b style="font-size:13.5px">1 · Fuel price</b>
+              <div style="display:flex;gap:10px;margin-top:10px">
+                <div style="flex:1"><div class="field" style="margin:0"><label>Petrol (₦/L)</label><input value="998"></div></div>
+                <div style="flex:1"><div class="field" style="margin:0"><label>Diesel (₦/L)</label><input value="1150"></div></div>
+                <div style="align-self:flex-end"><span class="hint">↻ sync national avg.</span></div>
+              </div>
+            </div>
+            <div class="panel" style="padding:18px;margin-top:14px">
+              <div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:13.5px">2 · Vehicles &amp; destinations</b><button class="btn ghost sm">+ Add vehicle</button></div>
+              <div class="vrow" style="margin-top:12px">
+                <div style="flex:1.1"><div class="field" style="margin:0"><label>Vehicle</label><select><option>Honda Civic · 0.068 L/km</option><option>+ Add new…</option></select></div></div>
+                <div style="flex:1.6"><div class="field" style="margin:0"><label>Work / destination</label><input value="Ring Road Commercial Hub, Ibadan"></div></div>
+                <div style="width:104px"><div class="field" style="margin:0"><label>Trips/wk</label><input value="10"></div></div>
+                <button class="btn ghost sm" style="border-color:var(--trap);color:var(--trap)">✕</button>
+              </div>
+              <div class="vrow">
+                <div style="flex:1.1"><div class="field" style="margin:0"><label>Vehicle</label><select><option>Kia Rio · 0.071 L/km</option></select></div></div>
+                <div style="flex:1.6"><div class="field" style="margin:0"><label>Work / destination</label><input value="University of Ibadan"></div></div>
+                <div style="width:104px"><div class="field" style="margin:0"><label>Trips/wk</label><input value="4"></div></div>
+                <button class="btn ghost sm" style="border-color:var(--trap);color:var(--trap)">✕</button>
+              </div>
+              <button class="btn ghost sm" style="width:100%;justify-content:center;border-style:dashed">+ Other destination (market, church, family…)</button>
+              <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+                <span class="chip blue" style="cursor:pointer">🚗 Car — driving</span>
+                <span class="chip grey" style="cursor:pointer">🚌 Danfo/BRT — transit</span>
+                <span class="chip grey" style="cursor:pointer">🏍 Okada — 2-wheel</span>
+                <span class="chip grey" style="cursor:pointer">🚶 Walk</span>
+                <span class="chip ok">✓ Traffic-aware routes</span>
+              </div>
+            </div>
+            <div class="panel" style="padding:18px;margin-top:14px">
+              <b style="font-size:13.5px">3 · Power &amp; utilities <span class="chip grey">optional</span></b>
+              <div style="display:flex;gap:10px;margin-top:10px">
+                <div style="flex:1"><div class="field" style="margin:0"><label>Prepaid meter spend (₦/mo)</label><input value="10000"></div></div>
+                <div style="flex:1"><div class="field" style="margin:0"><label>Gen/diesel backup (₦/mo)</label><input value="2000"></div></div>
+              </div>
+              <div class="hint">extends the published model: Tc = R + Tr + U</div>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:16px">
+              <button class="btn coral" style="flex:1;justify-content:center">∫ Calculate True Cost</button>
+              <button class="btn ghost" data-go="s6">💾 Save estimate</button>
+            </div>
+          </div>
+          <aside>
+            <div class="panel" style="padding:18px">
+              <b style="font-size:13.5px">Results — vehicle summary</b>
+              <div class="rrow head" style="margin-top:10px;grid-template-columns:1.3fr 1fr 1fr 1fr"><span>Vehicle</span><span>Weekly</span><span>Monthly</span><span>Yearly</span></div>
+              <div class="rrow" style="grid-template-columns:1.3fr 1fr 1fr 1fr"><span>🚗 Honda Civic</span><span class="num">₦2,000</span><span class="num">₦8,700</span><span class="num">₦104,400</span></div>
+              <div class="rrow" style="grid-template-columns:1.3fr 1fr 1fr 1fr"><span>🚗 Kia Rio (UI)</span><span class="num">₦440</span><span class="num">₦1,900</span><span class="num">₦22,800</span></div>
+              <div class="rrow total" style="grid-template-columns:1.3fr 1fr 1fr 1fr"><span>Transport total</span><span class="num">₦2,440</span><span class="num">₦10,600</span><span class="num">₦127,200</span></div>
+
+              <div class="rrow head" style="margin-top:18px;grid-template-columns:1fr 1fr 1fr 1fr 1fr"><span>Period</span><span>Rent</span><span>Transport</span><span>Power</span><span>True cost</span></div>
+              <div class="rrow" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr"><span>Weekly</span><span class="num">₦3,846</span><span class="num">₦2,440</span><span class="num">₦2,800</span><span class="num"><b>₦9,086</b></span></div>
+              <div class="rrow" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr"><span>Monthly</span><span class="num">₦16,667</span><span class="num">₦10,600</span><span class="num">₦12,000</span><span class="num"><b>₦39,267</b></span></div>
+              <div class="rrow total" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr"><span>Yearly</span><span class="num">₦200,000</span><span class="num">₦127,200</span><span class="num">₦144,000</span><span class="num" style="font-size:14px">₦541,200</span></div>
+              <div class="note ok" style="margin-top:12px">💚 This flat's transport share is 63% of rent — still efficient because rent is low. Compare before deciding.</div>
+              <div style="display:flex;gap:8px;margin-top:12px">
+                <button class="btn ghost sm" style="flex:1;justify-content:center" data-go="s5">⇄ Compare</button>
+                <button class="btn ghost sm" style="flex:1;justify-content:center">📄 PDF</button>
+                <button class="btn ghost sm" style="flex:1;justify-content:center" data-go="s6">💾 Save</button>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ============ COMPARE ============ -->
+      <section class="screen" id="s5">
+        <div class="topbar">
+          <span class="t"><span class="ic">✉</span> info@comfyhome.com</span><span class="t"><span class="ic">📍</span> 15, Odo Ona Ibadan, Nigeria</span>
+          <div class="right"><span class="soc">f t ⓘ p</span><button class="btn coral sm" data-go="s8">Add Listing</button></div>
+        </div>
+        <div class="header">
+          <div class="brand"><span class="house">🏠</span>ComfyHome</div>
+          <div class="navc"><a data-go="s1">Home</a><a>Property</a><a class="on">True Cost</a><a>Service</a><a>Blog</a></div>
+          <div class="iconbtns"><button class="sq">⌕</button><button class="sq" data-go="s9">👤</button><button class="sq on">🏠</button></div>
+        </div>
+        <div class="band"><h1>True-Cost Comparison</h1><div class="crumb">Profile: 1 car (Honda Civic · petrol ₦998/L) · work: Ring Road · 10 trips/wk</div></div>
+        <div class="sec" style="padding-top:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+            <span style="display:flex;gap:8px"><span class="chip grey">3 properties selected</span><span class="chip blue">＋ add from saved</span></span>
+            <span class="hint">new screen — the killer feature</span>
+          </div>
+          <div class="grid g3">
+            <div class="cmp win">
+              <div class="top"><span class="chip ok">🏆 Best value</span><div class="ptitle" style="margin:6px 0 2px">Self Contain, UI Area</div><span class="hint">₦700,000 rent/yr</span></div>
+              <div class="r"><span>Rent / yr</span><b class="num">₦700,000</b></div>
+              <div class="r"><span>Commute / yr</span><b class="num">₦107,300</b><span class="chip ok">3.1 km</span></div>
+              <div class="r"><span>Power / yr</span><b class="num">₦120,000</b></div>
+              <div class="r" style="font-weight:800"><span>True cost / yr</span><b class="num" style="color:var(--ok)">₦927,300</b></div>
+              <div class="r"><span>True cost / mo</span><b class="num">₦77,300</b></div>
+              <div class="r"><span>Amenity score</span><b>⭐ 97</b></div>
+              <div style="padding:12px 16px"><button class="btn ghost sm" style="width:100%;justify-content:center" data-go="s3">View property</button></div>
+            </div>
+            <div class="cmp">
+              <div class="top"><span class="chip grey">Option B</span><div class="ptitle" style="margin:6px 0 2px">2 Bedroom Flat, Aboke</div><span class="hint">₦200,000 rent/yr</span></div>
+              <div class="r"><span>Rent / yr</span><b class="num">₦200,000</b></div>
+              <div class="r"><span>Commute / yr</span><b class="num">₦104,400</b><span class="chip ok">2.8 km</span></div>
+              <div class="r"><span>Power / yr</span><b class="num">₦144,000</b></div>
+              <div class="r" style="font-weight:800"><span>True cost / yr</span><b class="num" style="color:var(--ok)">₦541,200</b></div>
+              <div class="r"><span>True cost / mo</span><b class="num">₦45,100</b></div>
+              <div class="r"><span>Amenity score</span><b>⭐ 91</b></div>
+              <div style="padding:12px 16px"><button class="btn ghost sm" style="width:100%;justify-content:center" data-go="s3">View property</button></div>
+            </div>
+            <div class="cmp">
+              <div class="top"><span class="chip trap">⚠ Cost trap</span><div class="ptitle" style="margin:6px 0 2px">Mini Flat, Moniya</div><span class="hint">₦450,000 rent/yr</span></div>
+              <div class="r"><span>Rent / yr</span><b class="num">₦450,000</b></div>
+              <div class="r"><span>Commute / yr</span><b class="num" style="color:var(--trap)">₦1,019,700</b><span class="chip trap">34 km</span></div>
+              <div class="r"><span>Power / yr</span><b class="num">₦150,000</b></div>
+              <div class="r" style="font-weight:800"><span>True cost / yr</span><b class="num" style="color:var(--trap)">₦1,619,700</b></div>
+              <div class="r"><span>True cost / mo</span><b class="num">₦135,000</b></div>
+              <div class="r"><span>Amenity score</span><b>⭐ 71</b></div>
+              <div style="padding:12px 16px"><button class="btn ghost sm" style="width:100%;justify-content:center" data-go="s3">View property</button></div>
+            </div>
+          </div>
+          <div class="panel" style="margin-top:20px;overflow:hidden">
+            <table class="ctable">
+              <tr><th>Metric</th><th>UI Area</th><th>Aboke</th><th>Moniya</th></tr>
+              <tr><td>True cost / yr</td><td class="best">₦927,300 ✓</td><td class="best">₦541,200 ✓ best</td><td class="worst">₦1,619,700 ✕</td></tr>
+              <tr><td>Commute distance</td><td class="best">6.2 km round-trip</td><td class="best">5.6 km ✓</td><td class="worst">68 km ✕</td></tr>
+              <tr><td>Amenity access</td><td class="best">⭐ 97 ✓</td><td>⭐ 91</td><td class="worst">⭐ 71</td></tr>
+              <tr><td>% of ₦8.3M avg. income</td><td>11.2%</td><td class="best">6.5% ✓</td><td class="worst">19.5%</td></tr>
+            </table>
+          </div>
+          <div class="note" style="margin-top:16px">🧠 <b>Insight:</b> Moniya's rent looks 2.25× Aboke's — but its true cost is <b>3× higher</b>. This is the insight your research proved: users deciding on true cost reported ~20% annual savings.</div>
+        </div>
+      </section>
+
+      <!-- ============ SAVED ESTIMATES ============ -->
+      <section class="screen" id="s6">
+        <div class="topbar">
+          <span class="t"><span class="ic">✉</span> info@comfyhome.com</span><span class="t"><span class="ic">📍</span> 15, Odo Ona Ibadan, Nigeria</span>
+          <div class="right"><span class="soc">f t ⓘ p</span><button class="btn coral sm" data-go="s8">Add Listing</button></div>
+        </div>
+        <div class="header">
+          <div class="brand"><span class="house">🏠</span>ComfyHome</div>
+          <div class="navc"><a data-go="s1">Home</a><a>Property</a><a class="on">True Cost</a><a>Service</a><a>Blog</a></div>
+          <div class="iconbtns"><button class="sq">⌕</button><button class="sq" data-go="s9">👤</button><button class="sq on">🏠</button></div>
+        </div>
+        <div class="band" style="display:flex;justify-content:space-between;align-items:flex-end">
+          <div><h1>My Saved Estimates</h1><div class="crumb">activates the dormant HistoricalData model</div></div>
+          <button class="btn coral sm" data-go="s4">＋ New estimate</button>
+        </div>
+        <div class="sec" style="padding-top:14px">
+          <div class="stats">
+            <div class="stat"><div class="l">Estimates saved</div><div class="v">7</div></div>
+            <div class="stat"><div class="l">Cheapest true cost</div><div class="v">₦541k</div><div class="s">Aboke 2-bed</div></div>
+            <div class="stat"><div class="l">Est. yearly savings</div><div class="v">₦1.08M</div><div class="s" style="color:var(--ok)">vs most expensive option</div></div>
+            <div class="stat"><div class="l">Fuel profile</div><div class="v">₦998/L</div><div class="s">petrol · updated 12 Nov</div></div>
+          </div>
+          <div class="panel" style="overflow:hidden">
+            <div class="rrow head" style="grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr"><span>Property</span><span>Saved</span><span>Rent/yr</span><span>Transport/yr</span><span>True cost/yr</span><span></span></div>
+            <div class="rrow" style="grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr">
+              <span><b>2 Bedroom Flat, Aboke</b><br><span class="hint">2.8 km commute</span></span><span>Today</span><span class="num">₦200,000</span><span class="num">₦104,400</span><span class="num"><b style="color:var(--ok)">₦541,200</b></span><span style="display:flex;gap:6px"><span class="chip ok">Best</span><span class="chip grey">⋯</span></span></div>
+            <div class="rrow" style="grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr">
+              <span><b>Self Contain, UI Area</b><br><span class="hint">3.1 km commute</span></span><span>Today</span><span class="num">₦700,000</span><span class="num">₦107,300</span><span class="num">₦927,300</span><span style="display:flex;gap:6px"><span class="chip grey">⇄</span><span class="chip grey">⋯</span></span></div>
+            <div class="rrow" style="grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr">
+              <span><b>Mini Flat, Moniya</b><br><span class="hint">34 km commute</span></span><span>3 Nov</span><span class="num">₦450,000</span><span class="num">₦1,019,700</span><span class="num" style="color:var(--trap)">₦1,619,700</span><span style="display:flex;gap:6px"><span class="chip grey">⇄</span><span class="chip grey">⋯</span></span></div>
+            <div class="rrow" style="grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr">
+              <span><b>3 Bedroom Duplex, Bodija</b><br><span class="hint">14 km commute</span></span><span>28 Oct</span><span class="num">₦1,800,000</span><span class="num">₦481,400</span><span class="num">₦2,441,400</span><span style="display:flex;gap:6px"><span class="chip grey">⇄</span><span class="chip grey">⋯</span></span></div>
+          </div>
+          <div class="note blue" style="margin-top:16px">📊 <b>Phase 3:</b> when fuel prices change, saved estimates re-run automatically and you get notified — "Your Aboke flat's transport cost rose ₦1,900/mo."</div>
+        </div>
+      </section>
+
+      <!-- ============ AGENT DASHBOARD ============ -->
+      <section class="screen" id="s7">
+        <div class="topbar">
+          <span class="t"><span class="ic">✉</span> info@comfyhome.com</span><span class="t"><span class="ic">📍</span> 15, Odo Ona Ibadan, Nigeria</span>
+          <div class="right"><span class="soc">f t ⓘ p</span><button class="btn coral sm" data-go="s8">Add Listing</button></div>
+        </div>
+        <div class="header">
+          <div class="brand"><span class="house">🏠</span>ComfyHome</div>
+          <div class="navc"><a data-go="s1">Home</a><a>Property</a><a>True Cost</a><a>Service</a></div>
+          <div class="iconbtns"><button class="sq">⌕</button><button class="sq on">👤</button><button class="sq">🏠</button></div>
+        </div>
+        <div class="band" style="display:flex;justify-content:space-between;align-items:flex-end">
+          <div><h1>Agent Dashboard</h1><div class="crumb">Agent Name · admin · verified ✓</div></div>
+          <button class="btn coral sm" data-go="s8">＋ Create Listing</button>
+        </div>
+        <div class="sec" style="padding-top:14px">
+          <div class="stats">
+            <div class="stat"><div class="l">Active listings</div><div class="v">7</div><div class="s" style="color:var(--warn)">1 pending review</div></div>
+            <div class="stat"><div class="l">Views (30 days)</div><div class="v">2,184</div><div class="s" style="color:var(--ok)">▲ 22% vs last month</div></div>
+            <div class="stat"><div class="l">Estimate runs</div><div class="v">486</div><div class="s">on your properties</div></div>
+            <div class="stat"><div class="l">Inspection requests</div><div class="v">9</div><div class="s" style="color:var(--warn)">3 unanswered</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1.7fr 1fr;gap:20px">
+            <div class="panel" style="overflow:hidden">
+              <div style="display:flex;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--cultured)"><b style="font-size:13.5px">My listings</b><span class="chip grey">filter ▾</span></div>
+              <div class="rrow head" style="grid-template-columns:2.2fr 1fr 1fr 1fr 1fr"><span>Property</span><span>Rent/yr</span><span>True cost*</span><span>Views</span><span>Status</span></div>
+              <div class="rrow" style="grid-template-columns:2.2fr 1fr 1fr 1fr 1fr"><span><b>2 Bedroom Flat</b><br><span class="hint">Aboke · edited 4d ago</span></span><span class="num">₦200k</span><span class="num">₦541k</span><span class="num">842</span><span class="chip ok">Live</span></div>
+              <div class="rrow" style="grid-template-columns:2.2fr 1fr 1fr 1fr 1fr"><span><b>Self Contain</b><br><span class="hint">Odo-Ona Kekere · 1w ago</span></span><span class="num">₦150k</span><span class="num">₦492k</span><span class="num">618</span><span class="chip ok">Live</span></div>
+              <div class="rrow" style="grid-template-columns:2.2fr 1fr 1fr 1fr 1fr"><span><b>3 Bedroom Duplex</b><br><span class="hint">Bodija · 2w ago</span></span><span class="num">₦1.8M</span><span class="num">₦2.28M</span><span class="num">431</span><span class="chip warn">Pending</span></div>
+              <div style="padding:12px 16px"><button class="btn ghost sm">Load more</button></div>
+            </div>
+            <aside>
+              <div class="panel" style="padding:16px">
+                <b style="font-size:13px">Inspection requests</b>
+                <div style="margin-top:10px;font-size:12.5px;line-height:2.1">
+                  <div style="display:flex;justify-content:space-between"><span>Kabir O. → Aboke flat</span><span class="chip warn">2h</span></div>
+                  <div style="display:flex;justify-content:space-between"><span>Fola A. → Self contain</span><span class="chip grey">1d</span></div>
+                  <div style="display:flex;justify-content:space-between"><span>Tunde B. → Mini flat</span><span class="chip grey">2d</span></div>
+                </div>
+                <button class="btn ghost sm" style="width:100%;justify-content:center;margin-top:10px">Open inbox</button>
+              </div>
+              <div class="panel" style="padding:16px;margin-top:14px">
+                <b style="font-size:13px">Listing quality tips</b>
+                <div class="note ok" style="margin:10px 0 0">📸 Listings with 5+ photos and a <b>true-cost badge</b> get ~2.4× more estimate runs. Add meter type &amp; water source to boost it.</div>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ CREATE LISTING ============ -->
+      <section class="screen" id="s8">
+        <div class="topbar">
+          <span class="t"><span class="ic">✉</span> info@comfyhome.com</span><span class="t"><span class="ic">📍</span> 15, Odo Ona Ibadan, Nigeria</span>
+          <div class="right"><span class="soc">f t ⓘ p</span><button class="btn coral sm">Add Listing</button></div>
+        </div>
+        <div class="header">
+          <div class="brand"><span class="house">🏠</span>ComfyHome</div>
+          <div class="navc"><a data-go="s1">Home</a><a>Property</a><a>True Cost</a><a>Service</a></div>
+          <div class="iconbtns"><button class="sq">⌕</button><button class="sq on">👤</button><button class="sq">🏠</button></div>
+        </div>
+        <div class="band"><h1>Add Listing</h1><div class="crumb">5-step wizard · fixes: place_id now actually saved; utility fields added</div></div>
+        <div class="sec" style="padding-top:12px;max-width:820px">
+          <div style="display:flex;gap:8px;margin-bottom:16px">
+            <span class="chip coral" style="background:var(--coral);color:#fff">1 · Basics</span><span class="chip grey">2 · Location</span><span class="chip grey">3 · Photos</span><span class="chip grey">4 · Cost inputs</span><span class="chip grey">5 · Review</span>
+          </div>
+          <div class="panel" style="padding:22px">
+            <div class="grid g2">
+              <div class="field"><label>Listing title</label><input placeholder="e.g. 2 Bedroom Flat"></div>
+              <div class="field"><label>Purpose</label><select><option>Rent</option><option>Sale</option></select></div>
+            </div>
+            <div class="grid g2">
+              <div class="field"><label>Price (₦ / year if rent)</label><input placeholder="200000"><div class="hint">add instalment terms, e.g. "60/40 accepted"</div></div>
+              <div class="field"><label>Property type</label><select><option>Flat</option><option>Self contain</option><option>Duplex</option><option>Bungalow</option></select></div>
+            </div>
+            <div class="grid g3">
+              <div class="field"><label>Bedrooms</label><input value="2"></div>
+              <div class="field"><label>Bathrooms</label><input value="2"></div>
+              <div class="field"><label>Square Ft</label><input value="300"></div>
+            </div>
+            <div class="field"><label>Address (Google autocomplete)</label><input placeholder="Start typing — pick a suggestion"><div class="hint">📍 picking a suggestion captures the exact place_id → powers map, commute maths &amp; amenity score</div></div>
+            <div class="note">🆕 <b>New required fields for the true-cost badge:</b> prepaid meter (Y/N), water source, gen/inverter backup, service charge (₦/yr).</div>
+            <div style="display:flex;justify-content:space-between;margin-top:14px">
+              <button class="btn ghost">Save draft</button>
+              <button class="btn coral" data-go="s7">Continue →</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ AUTH ============ -->
+      <section class="screen" id="s9">
+        <div class="auth">
+          <div class="left">
+            <div class="brand" style="color:#fff;font-size:20px"><span class="house">🏠</span>ComfyHome</div>
+            <h2>Rent with your eyes open.</h2>
+            <p>Every property carries its true cost of living — rent, commute and power combined — so a cheaper address never becomes an expensive mistake.</p>
+            <ul>
+              <li>✓ 20% avg. annual savings, research-proven</li>
+              <li>✓ Multi-vehicle &amp; transit commute modelling</li>
+              <li>✓ Neighborhood amenity scores &amp; comparison</li>
+              <li>✓ Free for house-hunters — always</li>
+            </ul>
+          </div>
+          <div class="right">
+            <div style="display:flex;gap:8px;margin-bottom:20px">
+              <span class="chip" style="background:var(--coral);color:#fff">House-hunter</span>
+              <span class="chip grey" style="cursor:pointer">Agent / Landlord</span>
+            </div>
+            <h3 style="font-size:20px">Welcome Back</h3>
+            <p class="hint" style="margin:6px 0 16px">Log in to run estimates, save properties and compare homes.</p>
+            <div class="field"><label>Email</label><input placeholder="you@example.com"></div>
+            <div class="field"><label>Password</label><input type="password" placeholder="••••••••"><div style="margin-top:4px"><a style="font-size:11px;color:var(--coral-dark);font-weight:700;cursor:pointer">Forgot password?</a></div></div>
+            <button class="btn coral" style="width:100%;justify-content:center" data-go="s6">Log In</button>
+            <div style="text-align:center;font-size:12px;color:var(--cadet);margin:14px 0">— or —</div>
+            <button class="btn ghost" style="width:100%;justify-content:center">G Continue with Google</button>
+            <p style="font-size:12px;color:var(--cadet);margin-top:16px;text-align:center">New here? <a style="color:var(--coral-dark);font-weight:800;cursor:pointer">Create a free account</a></p>
+            <div class="note ok" style="margin-top:14px">🔐 Password reset &amp; email verification become real features — no more fake "check your email" messages.</div>
+          </div>
+        </div>
+      </section>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const titles={
+ s1:['Home','Rebuilt in live design language: navy strip, white header + square icon buttons, light hero with eyebrow + left-rule paragraph, orange search strip'],
+ s2:['Properties','Live card pattern (photo + location overlay, coral price, blue title, icon feature columns, agent footer) + true-cost badge, filter panel with true-cost slider'],
+ s3:['Property Detail','Gallery + amenities panel + map + sticky True-Cost panel; fixes noted for live bugs (Maps REQUEST_DENIED, dev watermark)'],
+ s4:['Cost Estimator','Same header/band pattern as inner pages; fuel, vehicles, destinations, transport modes, traffic-aware, power & utilities (Tc = R + Tr + U)'],
+ s5:['True-Cost Comparison (NEW)','Side-by-side in card language; winner/tarp flags; % of income benchmark'],
+ s6:['Saved Estimates (NEW)','Persisted history (HistoricalData activated), KPI band, future fuel re-valuation alerts'],
+ s7:['Agent Dashboard (NEW)','Listings table with true-cost column, views, inspection inbox, quality tips'],
+ s8:['Create Listing','5-step wizard matching "Add Listing" CTA; place_id capture + utility fields'],
+ s9:['Login / Register','Split auth: navy story panel + light form panel; real password reset']
+};
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.navlink').forEach(n=>n.classList.toggle('active',n.dataset.s===id));
+  const t=titles[id];document.getElementById('scrName').textContent=t[0];document.getElementById('scrDesc').textContent=t[1];
+  const urls={s1:'comfyhome.onrender.com/',s2:'comfyhome.onrender.com/property?sort=true_cost',s3:'comfyhome.onrender.com/6/',s4:'comfyhome.onrender.com/6/cost_estimation/',s5:'comfyhome.onrender.com/compare/?ids=6,9,14',s6:'comfyhome.onrender.com/my/estimates/',s7:'comfyhome.onrender.com/agent/dashboard/',s8:'comfyhome.onrender.com/create/',s9:'comfyhome.onrender.com/login/'};
+  document.getElementById('urlBar').textContent=urls[id];
+  document.querySelector('.stage').scrollTop=0;
+}
+document.addEventListener('click',e=>{const el=e.target.closest('[data-s],[data-go]');if(!el)return;show(el.dataset.s||el.dataset.go);});
+</script>
+</body>
+</html>

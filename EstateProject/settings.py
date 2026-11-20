@@ -12,8 +12,6 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
-# from decouple import config
-
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,11 +23,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-j8ymzm7nn&_+9qbk$m9va4sh%24i!7m(-%f3)_88&b(g7c#8fu'
+# Set SECRET_KEY in the environment (locally via .env, on Render via dashboard).
+SECRET_KEY = os.environ.get("SECRET_KEY", "dev-only-insecure-key-change-me")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-ALLOWED_HOSTS = ['*']
-DEBUG = False
+DEBUG = os.environ.get("DEBUG", "").lower() in ("1", "true", "yes")
+
+ALLOWED_HOSTS = [h.strip() for h in os.environ.get(
+    "ALLOWED_HOSTS",
+    "comfyhome.onrender.com,localhost,127.0.0.1",
+).split(",") if h.strip()]
 # if ALLOWED_HOSTS == ['']:
 #     DEBUG = True
 
@@ -92,7 +95,7 @@ DATABASES = {
 }
 
 AUTH_USER_MODEL = 'RealEstate.User'
-LOGIN_URL = ("login")
+LOGIN_URL = "login"
 
 
 # Password validation
@@ -119,6 +122,17 @@ AUTH_PASSWORD_VALIDATORS = [
 
 GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY", "")
 
+# --- Geo provider (zero-cost by default) -------------------------------
+# GEO_PROVIDER: "osm" (free: Nominatim/Photon/OSRM + Leaflet) or "google"
+# (requires billing). One env var flip switches the whole platform.
+GEO_PROVIDER = os.environ.get("GEO_PROVIDER", "osm")
+
+# Nominatim requires a polite, identifying User-Agent (usage policy).
+OSM_USER_AGENT = "ComfyHome/2.0 (https://comfyhome.onrender.com; contact: info@comfyhome.com)"
+
+# Google Maps key for browser-side map display (referrer-restricted key).
+GOOGLE_MAPS_BROWSER_KEY = os.environ.get("GOOGLE_MAPS_BROWSER_KEY", "")
+
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
@@ -138,14 +152,15 @@ MEDIA_URL = '/media/'
 
 # Static files configuration (Optional if using static files)
 STATIC_URL = '/static/'
-# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 if DEBUG:
-    STATICFILES_DIRS = os.path.join(BASE_DIR, 'static'),
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
-else:
-    STATIC_ROOT = BASE_DIR/ 'staticfiles'
+    STATICFILES_DIRS = [BASE_DIR / 'static']
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
+}
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
     
 
 

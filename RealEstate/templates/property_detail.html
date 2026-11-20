@@ -93,28 +93,35 @@
 </div>
 
     <script>
-        function initMap() {
+        // Zero-cost map: Leaflet + OpenStreetMap tiles + Nominatim geocoding.
+        // (No API key, no billing. Server also caches geocodes — this client
+        // call is a display-time fallback.)
+        async function initMap() {
             const address = "{{ property.address }}, {{ property.city }}, {{ property.state }}, {{ property.zip_code }}";
-            const geocoder = new google.maps.Geocoder();
-            const map = new google.maps.Map(document.getElementById("map"), {
-                zoom: 14,
-                center: {lat: -34.397, lng: 150.644}  // Default center
-            });
-    
-            geocoder.geocode({'address': address}, function(results, status) {
-                if (status === 'OK') {
-                    map.setCenter(results[0].geometry.location);
-                    new google.maps.Marker({
-                        map: map,
-                        position: results[0].geometry.location
-                    });
-                } else {
-                    alert('Geocode was not successful for the following reason: ' + status);
+            const map = L.map("map").setView([7.378, 3.898], 13);  // Ibadan default
+            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                maxZoom: 19,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            try {
+                const r = await fetch("https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=ng&q=" + encodeURIComponent(address), {
+                    headers: { "Accept": "application/json" }
+                });
+                const results = await r.json();
+                if (results && results.length) {
+                    const lat = parseFloat(results[0].lat), lon = parseFloat(results[0].lon);
+                    map.setView([lat, lon], 15);
+                    L.marker([lat, lon]).addTo(map)
+                        .bindPopup("{{ property.title|escapejs }}")
+                        .openPopup();
                 }
-            });
+            } catch (e) {
+                console.warn("Geocode unavailable, showing default view");
+            }
         }
     </script>
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key={{google_api_key}}&callback=initMap"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" onload="initMap()"></script>
     
 
 
