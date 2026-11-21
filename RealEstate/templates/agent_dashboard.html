@@ -1,0 +1,90 @@
+{% load static %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Dashboard</title>
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <link rel="icon" type="image/png" href="{% static 'images/fav.png' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    {% include "homeverse/nav.html" %}
+
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h1 class="h3 mb-0">Agent Dashboard</h1>
+                <small class="text-muted">{{ user.get_username }}</small>
+            </div>
+            <a href="{% url 'property_create_new' %}" class="btn btn-danger">＋ Create Listing</a>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="card"><div class="card-body">
+                    <div class="text-muted small">Active listings</div>
+                    <div class="fs-4 fw-bold">{{ listing_count }}</div>
+                </div></div>
+            </div>
+            <div class="col-md-4">
+                <div class="card"><div class="card-body">
+                    <div class="text-muted small">Estimate runs on your properties</div>
+                    <div class="fs-4 fw-bold">{{ estimate_runs }}</div>
+                </div></div>
+            </div>
+            <div class="col-md-4">
+                <div class="card"><div class="card-body">
+                    <div class="text-muted small">Tip</div>
+                    <div class="small">Listings with 5+ photos get more estimate runs.</div>
+                </div></div>
+            </div>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}<div class="alert alert-info">{{ message }}</div>{% endfor %}
+        {% endif %}
+
+        {% if listings %}
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Property</th>
+                        <th>Rent/Sale</th>
+                        <th>Price</th>
+                        <th>Estimates</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in listings %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'property_detail' p.pk %}" class="fw-bold text-decoration-none">{{ p.title }}</a><br>
+                            <small class="text-muted">{{ p.address }}, {{ p.city }}</small>
+                        </td>
+                        <td>{{ p.get_sale_or_rent_display }}</td>
+                        <td>₦{{ p.price|floatformat:2|intcomma }}</td>
+                        <td>{{ p.historicaldata_set.count }}</td>
+                        <td class="d-flex gap-2">
+                            <a href="{% url 'property_edit' p.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                            <a href="{% url 'property_delete' p.pk %}" class="btn btn-sm btn-outline-danger">Delete</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center text-muted border border-dashed rounded p-5">
+            No listings yet — create your first one.
+        </div>
+        {% endif %}
+    </div>
+
+    {% include "homeverse/footer.html" %}
+</body>
+</html>

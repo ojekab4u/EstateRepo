@@ -6,33 +6,37 @@ from . import views
 
 
 urlpatterns = [
-    # path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
-    path("login", views.UserLogin, name= "login"),
-    path("logout/", views.log_them_out, name= "logout"),
+    # Auth
+    path("login", views.UserLogin, name="login"),
+    path("logout/", views.log_them_out, name="logout"),
     path('agent-register/', views.agent_register, name='agent_register'),
-    path('customer-register/',views.customer_register, name='customer_register'),
+    path('customer-register/', views.customer_register, name='customer_register'),
 
+    # Public
     path('', views.index, name='index'),
     path('about', views.about, name='about'),
     path('service', views.service, name='service'),
     path('contact', views.contact, name='contact'),
     path('blog', views.blog, name='blog'),
     path('property', views.property_list, name='property_list'),
-    path('create/', views.property_create, name='property_create'),
-    path('<int:pk>/', views.property_detail, name='property_detail'),
     path('property_search/', views.property_search, name='property_search'),
+    path('<int:pk>/', views.property_detail, name='property_detail'),
     path('<int:property_id>/cost_estimation/', views.cost_estimation_detail, name='cost_estimation_detail'),
-    
-    # path('cost-estimation/<int:property_id>/', views.cost_estimation, name='cost_estimation'),
-    # path('property/<int:pk>/', views.property_detail, name='property_detail'),
-    # path('cost-estimation/<int:property_id>/', views.cost_estimation_detail, name='cost_estimation_detail'),
 
-    
+    # Agent workspace (agents only)
+    path('create/', views.property_create, name='property_create'),
+    path('agent/listings/new/', views.property_create, name='property_create_new'),  # alias to canonical name
+    path('agent/dashboard/', views.agent_dashboard, name='agent_dashboard'),
+    path('agent/listings/<int:pk>/edit/', views.property_edit, name='property_edit'),
+    path('agent/listings/<int:pk>/delete/', views.property_delete, name='property_delete'),
+
+    # Customer workspace
+    path('my/estimates/', views.my_estimates, name='my_estimates'),
+
+    # Vehicles (customers)
     path('addvehicle/', views.add_vehicle, name='add_vehicle'),
     path('myvehicles/', views.vehicle_list, name='vehicle_list'),
-
 ]
 
 
-# if settings.DEBUG:
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -19,7 +19,15 @@ class PropertyForm(forms.ModelForm):
     class Meta:
         model = Property
         fields = ['title', 'description', 'address', 'city', 'state', 'zip_code', 'price', 'property_type', 'bedrooms', 'bathrooms','square_feet','main_image','sale_or_rent']
-        
+
+
+class PropertyEditForm(forms.ModelForm):
+    """Edit form: main_image optional (keep the existing photo unless a new one is uploaded)."""
+    main_image = forms.ImageField(required=False)
+
+    class Meta(PropertyForm.Meta):
+        fields = [f for f in PropertyForm.Meta.fields]
+
 
 class PropertyImageForm(forms.ModelForm):
     image = forms.ImageField(widget=MultipleFileInput)

@@ -95,7 +95,7 @@ DATABASES = {
 }
 
 AUTH_USER_MODEL = 'RealEstate.User'
-LOGIN_URL = "login"
+LOGIN_URL = "/login"  # absolute path — required by user_passes_test redirects
 
 
 # Password validation

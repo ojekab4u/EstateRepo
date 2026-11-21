@@ -2,12 +2,12 @@
 from django.conf import settings
 # from .utils import get_distance
 from django.contrib.messages import success, error
-from django.shortcuts import render, redirect, get_object_or_404, HttpResponse, HttpResponseRedirect
+from django.shortcuts import render, redirect, get_object_or_404, HttpResponse, HttpResponseRedirect, Http404
 from .models import Property, PropertyImage, Property, Vehicle
 from decimal import Decimal, ROUND_HALF_UP
-from .forms import (UserRegistrationForm, 
-                    PropertyForm, 
-                    PropertySearchForm, 
+from .forms import (UserRegistrationForm,
+                    PropertyForm, PropertyEditForm,
+                    PropertySearchForm,
                     PropertyImageForm,
                     VehicleForm
                     )
@@ -324,7 +324,7 @@ def property_create(request):
                 PropertyImage.objects.create(property=property, image=image)
 
             messages.success(request, 'Property created successfully!')
-            return redirect('property_list')  
+            return redirect('agent_dashboard')
     else:
         property_form = PropertyForm()
 
@@ -353,6 +353,94 @@ def add_vehicle(request):
 def vehicle_list(request):
     vehicles = Vehicle.objects.filter(user=request.user)
     return render(request, 'vehicle_list.html', {'vehicles': vehicles})
+
+
+# ---------------------------------------------------------------------------
+# Role-based endpoints: agent workspace & customer saved estimates
+# ---------------------------------------------------------------------------
+
+def agent_required_redirect(user):
+    """Pass for logged-in agents only (covers unauthenticated users too)."""
+    return user.is_authenticated and user.is_agent
+
+
+@user_passes_test(agent_required_redirect, login_url='login')
+def agent_dashboard(request):
+    """Agent workspace: their listings + how many estimate runs their
+    properties have received. (Metrics shown are real queries — no fake
+    numbers until view tracking exists.)"""
+    listings = (
+        Property.objects.filter(owner=request.user)
+        .prefetch_related('images')
+        .order_by('-created_at')
+    )
+    estimate_runs = HistoricalData.objects.filter(property__owner=request.user).count()
+    context = {
+        'listings': listings,
+        'listing_count': listings.count(),
+        'estimate_runs': estimate_runs,
+    }
+    return render(request, 'agent_dashboard.html', context)
+
+
+@login_required
+def property_edit(request, pk):
+    prop = get_object_or_404(Property, pk=pk)
+    if prop.owner != request.user:
+        raise Http404("Listing not found")  # don't reveal other agents' listings
+    if not request.user.is_agent:
+        messages.info(request, "Only agents can edit listings.")
+        return redirect('index')
+
+    if request.method == 'POST':
+        form = PropertyEditForm(request.POST, request.FILES, instance=prop)
+        images = request.FILES.getlist('additional_images')
+        if form.is_valid():
+            new_image = form.cleaned_data.get('main_image')
+            if new_image:
+                prop.main_image = new_image
+            form.save()
+            for image in images:
+                PropertyImage.objects.create(property=prop, image=image)
+            messages.success(request, 'Listing updated.')
+            return redirect('agent_dashboard')
+    else:
+        form = PropertyEditForm(instance=prop)
+    return render(request, 'property_edit.html', {'form': form, 'property': prop})
+
+
+@login_required
+def property_delete(request, pk):
+    prop = get_object_or_404(Property, pk=pk)
+    if prop.owner != request.user:
+        raise Http404("Listing not found")
+    if not request.user.is_agent:
+        messages.info(request, "Only agents can delete listings.")
+        return redirect('index')
+
+    if request.method == 'POST':
+        prop.delete()
+        messages.success(request, 'Listing deleted.')
+        return redirect('agent_dashboard')
+    return render(request, 'property_delete_confirm.html', {'property': prop})
+
+
+@login_required
+def my_estimates(request):
+    """Customer saved estimates — reads the HistoricalData rows now persisted
+    by the cost estimator."""
+    estimates = (
+        HistoricalData.objects.filter(user=request.user)
+        .select_related('property')
+        .order_by('-date_field')
+    )
+    # Aggregate view: cheapest true cost among the user's estimates
+    cheapest = estimates.order_by('total_effective_cost').first()
+    context = {
+        'estimates': estimates,
+        'cheapest': cheapest,
+    }
+    return render(request, 'my_estimates.html', context)
 
 
 import json
@@ -431,6 +519,11 @@ def cost_estimation_detail(request, property_id):
         vehicle_summaries = []
         total_transportation_cost = Decimal(0)
 
+        # Rent is fixed for the whole estimate — compute once before the vehicle loop
+        rent_weekly = property.price / 52
+        rent_monthly = property.price / 12
+        rent_yearly = property.price
+
         # Iterate over each car's details
         for car in car_details:
             vehicle = get_object_or_404(Vehicle, pk=car['vehicle_id'])
@@ -489,10 +582,27 @@ def cost_estimation_detail(request, property_id):
             vehicle_summaries.append(vehicle_summary)
             total_transportation_cost += vehicle_summary['yearly_estimate']
 
-        # Calculate rent on a weekly, monthly, and yearly basis
-        rent_weekly = property.price / 52
-        rent_monthly = property.price / 12
-        rent_yearly = property.price
+            # Persist the estimate (activates the dormant HistoricalData model —
+            # previously results were never saved anywhere)
+            profile = {
+                'fuel_price': str(current_fuel_price),
+                'work_trips_per_week': car['work_trips_per_week'],
+                'other_locations': car['other_locations'],
+                'geo_provider': settings.GEO_PROVIDER,
+            }
+            HistoricalData.objects.create(
+                user=user,
+                property=property,
+                vehicle_name=vehicle.name,
+                work_location=car['work_location'],
+                work_trips_per_week=car['work_trips_per_week'],
+                other_locations=json.dumps(profile),
+                total_distance=total_distance_for_vehicle,
+                transportation_cost=vehicle_summary['yearly_estimate'],
+                total_effective_cost=rent_yearly + vehicle_summary['yearly_estimate'],
+            )
+
+        # Rent already computed above (rent_weekly / rent_monthly / rent_yearly)
 
         
         

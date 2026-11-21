@@ -1,0 +1,71 @@
+{% load static %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Saved Estimates</title>
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <link rel="icon" type="image/png" href="{% static 'images/fav.png' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    {% include "homeverse/nav.html" %}
+
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h1 class="h3 mb-0">My Saved Estimates</h1>
+                <small class="text-muted">Every cost estimate you have run, saved automatically</small>
+            </div>
+            <a href="{% url 'property_list' %}" class="btn btn-outline-danger">Run a new estimate</a>
+        </div>
+
+        {% if cheapest %}
+        <div class="alert alert-success">
+            💚 Cheapest so far: <strong>{{ cheapest.property.title }}</strong> — true cost
+            ₦{{ cheapest.total_effective_cost|floatformat:2|intcomma }}/yr
+        </div>
+        {% endif %}
+
+        {% if estimates %}
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Property</th>
+                        <th>Vehicle</th>
+                        <th>Commute target</th>
+                        <th>Trips/wk</th>
+                        <th>Transport ₦/yr</th>
+                        <th>True cost ₦/yr</th>
+                        <th>Saved</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for e in estimates %}
+                    <tr>
+                        <td><a class="text-decoration-none fw-bold" href="{% url 'property_detail' e.property.pk %}">{{ e.property.title }}</a><br>
+                            <small class="text-muted">{{ e.property.city }}</small></td>
+                        <td>{{ e.vehicle_name }}</td>
+                        <td>{{ e.work_location }}</td>
+                        <td>{{ e.work_trips_per_week }}</td>
+                        <td>₦{{ e.transportation_cost|floatformat:2|intcomma }}</td>
+                        <td class="fw-bold">₦{{ e.total_effective_cost|floatformat:2|intcomma }}</td>
+                        <td><small class="text-muted">{{ e.date_field|date:"d M Y" }}</small></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center text-muted border rounded p-5">
+            No estimates yet. Open a property and run the <a href="{% url 'property_list' %}">cost estimation</a> — results are saved here automatically.
+        </div>
+        {% endif %}
+    </div>
+
+    {% include "homeverse/footer.html" %}
+</body>
+</html>

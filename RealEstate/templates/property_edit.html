@@ -1,0 +1,44 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Listing — {{ property.title }}</title>
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <link rel="icon" type="image/png" href="{% static 'images/fav.png' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    {% include "homeverse/nav.html" %}
+
+    <div class="container py-4" style="max-width: 760px;">
+        <h1 class="h3">Edit Listing</h1>
+        <p class="text-muted small">Leave the photo blank to keep the current main image.</p>
+
+        {% if messages %}{% for message in messages %}<div class="alert alert-info">{{ message }}</div>{% endfor %}{% endif %}
+
+        <form method="post" enctype="multipart/form-data" class="card card-body shadow-sm">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="mb-3">
+                <label class="form-label fw-bold" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<small class="text-muted">{{ field.help_text }}</small>{% endif %}
+                {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+            </div>
+            {% endfor %}
+            <div class="mb-3">
+                <label class="form-label fw-bold" for="id_additional_images">Additional photos</label>
+                <input type="file" name="additional_images" id="id_additional_images" multiple accept="image/*" class="form-control">
+            </div>
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'agent_dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" class="btn btn-danger">Save changes</button>
+            </div>
+        </form>
+    </div>
+
+    {% include "homeverse/footer.html" %}
+</body>
+</html>
