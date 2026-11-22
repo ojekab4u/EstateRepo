@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ComfyHome — Find your dream house by its true cost</title>
-    <meta name="description" content="Every property shows rent + commute + power — the true cost of living — before you sign. Research-backed (DOI 10.5281/zenodo.18474673).">
+    <meta name="description" content="Every property shows rent + commute + power — the true cost of living — before you sign.">
     <link rel="icon" type="image/png" href="{% static 'images/fav.png' %}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -26,7 +26,7 @@
         .ch-searchstrip input:focus,.ch-searchstrip select:focus{border-color:var(--ch-coral);box-shadow:0 0 0 3px rgba(255,90,61,.13)}
         .ch-searchstrip input{flex:1.5;min-width:200px}
         .ch-searchstrip select{flex:.8;min-width:130px;color:var(--ch-cadet)}
-        .ch-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:0 28px 10px}
+        .ch-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:0 28px 10px}
         @media (max-width:860px){.ch-stats{grid-template-columns:repeat(2,1fr);margin:0 28px}}
         .ch-stat{background:#fff;border-radius:8px;padding:16px 18px;box-shadow:var(--ch-shadow)}
         .ch-stat .l{font-size:11px;color:var(--ch-cadet);font-weight:700}
@@ -73,16 +73,6 @@
     <!-- orange search strip -->
     <form class="ch-searchstrip" method="GET" action="{% url 'property_list' %}">
         <input name="q" placeholder="Search Keyword — area, city, landmark (e.g. Bodija, Ibadan)">
-        <select name="sale_or_rent">
-            <option value="rent">Purpose: Rent</option>
-            <option value="sale">Purpose: Buy</option>
-        </select>
-        <select name="max_true_cost">
-            <option value="">Max true cost: any</option>
-            <option value="1500000">≤ ₦1.5M / yr</option>
-            <option value="2500000">≤ ₦2.5M / yr</option>
-            <option value="4000000">≤ ₦4M / yr</option>
-        </select>
         <button type="submit" class="ch-btn ch-btn-coral">🔍 Search</button>
     </form>
 
@@ -91,7 +81,6 @@
         <div class="ch-stat"><div class="l">Listings live</div><div class="v">{{ listing_count }}</div><div class="s" style="color:var(--ch-ok)">across Ibadan &amp; Lagos</div></div>
         <div class="ch-stat"><div class="l">Cost estimates run</div><div class="v">{{ estimate_runs }}</div><div class="s" style="color:var(--ch-cadet)">saved automatically per user</div></div>
         <div class="ch-stat"><div class="l">Fuel prices today</div><div class="v">₦{{ petrol|default:"—" }}<small style="font-size:11px;color:var(--ch-cadet)">/L</small></div><div class="s" style="color:var(--ch-cadet)">petrol · diesel ₦{{ diesel|default:"—" }}/L</div></div>
-        <div class="ch-stat"><div class="l">Research-proven</div><div class="v">~20%</div><div class="s">avg. annual savings deciding on true cost — <a href="https://doi.org/10.5281/zenodo.18474673" style="color:var(--ch-coral)">our published study</a></div></div>
     </div>
 
     <!-- featured -->
