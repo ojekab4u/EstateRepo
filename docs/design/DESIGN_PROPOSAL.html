@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ComfyHome — Design Change Proposal (before → after)</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0B2C3C; --jungle:#071A1D; --coral:#FF5A3D; --coral-dark:#C93C25;
+  --blue:#2563EB; --cadet:#5E707C; --cultured:#F4F7F8;
+  --ok:#0E9F6E; --ok-bg:#E7F6F0; --warn:#F59E0B; --warn-bg:#FEF3C7; --trap:#DC2626; --trap-bg:#FEE2E2;
+  --shadow:0 16px 32px hsla(188,63%,7%,.1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Nunito Sans',sans-serif;background:#E7EBEE;color:#0F172A;padding:28px}
+h1,h2,h3,h4{font-family:'Poppins'}
+.intro{max-width:1140px;margin:0 auto 26px}
+.intro h1{font-size:24px;color:var(--navy)}
+.intro p{color:var(--cadet);font-size:14px;margin-top:6px;max-width:820px;line-height:1.7}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:1400px;margin:0 auto}
+.frame{background:#fff;border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}
+.frame-bar{padding:9px 14px;background:var(--cultured);font-size:11.5px;font-weight:800;display:flex;gap:8px;align-items:center}
+.badge{padding:3px 9px;border-radius:20px;font-size:10px;font-weight:800}
+.b-now{background:#FEE2E2;color:#B91C1C}
+.b-after{background:var(--ok-bg);color:var(--ok)}
+.viewport{padding:0;height:520px;overflow:auto}
+/* --- shared content --- */
+.pagehead{padding:18px 22px 4px}
+.pagehead h2{font-size:26px}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px 22px 22px}
+/* ---- BEFORE: current inner-page style (raw bootstrap) ---- */
+.b .filterbar{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 22px}
+.b input,.b select{border:1px solid #ced4da;border-radius:4px;padding:8px 10px;font-size:12.5px;font-family:'Nunito Sans'}
+.b .apply{grid-column:1/-1;background:var(--blue);color:#fff;border:none;border-radius:4px;padding:9px;font-weight:700;font-family:'Nunito Sans'}
+.b .card{border:1px solid #e9ecef;border-radius:4px;background:#fff}
+.b .ph{height:110px;background:linear-gradient(150deg,#1F4E5F,#0B2C3C);display:grid;place-items:center;color:#fff;font-size:22px;position:relative}
+.b .loc{position:absolute;bottom:6px;left:8px;right:8px;color:#fff;font-size:10.5px;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.4)}
+.b .bd{padding:12px}
+.b .price{color:var(--coral);font-weight:800;font-size:16px}
+.b .ttl{color:var(--blue);font-weight:800;font-size:14.5px;font-family:'Poppins';margin:2px 0 6px}
+.b .feats{display:flex;gap:0;border-top:1px solid #e9ecef;margin-top:8px}
+.b .f{flex:1;text-align:center;padding:7px 2px;border-right:1px solid #e9ecef;font-size:10.5px;color:var(--cadet)}
+.b .f b{display:block;font-size:13px;color:var(--blue);font-family:'Poppins'}
+.b .f:last-child{border:none}
+.b .agent{display:flex;align-items:center;gap:8px;background:#f8f9fa;padding:8px 10px;border-top:1px solid #e9ecef}
+.b .av{width:28px;height:28px;border-radius:50%;background:#e9ecef;display:grid;place-items:center;font-size:12px}
+.b .an{color:var(--blue);font-weight:800;font-size:12px}
+/* ---- AFTER: ComfyHome design system ---- */
+.a .topbar{background:var(--jungle);color:#fff;font-size:10.5px;padding:7px 16px;display:flex;gap:14px;align-items:center}
+.a .topbar .cta{margin-left:auto;background:var(--coral);border-radius:4px;padding:5px 10px;font-weight:800;font-size:10px}
+.a .hdr{background:#fff;padding:10px 16px;display:flex;align-items:center;gap:14px;border-bottom:1px solid #EDF1F3}
+.a .logo{color:var(--coral);font-family:'Poppins';font-weight:800;font-size:15px}
+.a .nav{display:flex;gap:12px;font-size:11px;font-weight:700;color:var(--navy)}
+.a .sq{margin-left:auto;display:flex;gap:6px}
+.a .sq i{width:26px;height:26px;background:#fff;box-shadow:0 3px 10px rgba(11,44,60,.08);border-radius:4px;display:grid;place-items:center;font-style:normal;font-size:10px}
+.a .sortrow{display:flex;justify-content:space-between;align-items:center;padding:10px 22px 0;font-size:10.5px;color:var(--cadet)}
+.a .afilter{padding:10px 22px 2px}
+.a .afrow{display:flex;gap:7px;margin-bottom:7px;align-items:center}
+.a .afrow input,.a .afrow select{border:1px solid #DCE3E7;border-radius:6px;padding:7px 9px;font-size:10.5px;font-family:'Nunito Sans';outline:none;min-width:0}
+.a .afrow input:focus{border-color:var(--coral);box-shadow:0 0 0 2px rgba(255,90,61,.12)}
+.a .apply{background:var(--coral);color:#fff;border:none;border-radius:6px;padding:7px 14px;font-weight:800;font-size:10.5px;font-family:'Nunito Sans'}
+.a .slider small{display:block;font-size:9px;color:var(--cadet);margin-bottom:2px}
+.a .slider .track{height:4px;background:#E3E9EC;border-radius:3px;position:relative}
+.a .slider .track i{position:absolute;left:0;width:55%;height:100%;background:var(--coral);border-radius:3px}
+.a .afrow.chips{margin-bottom:2px}
+.a .chip{padding:3px 9px;border-radius:4px;font-size:9.5px;font-weight:800}
+.a .chip.ok{background:var(--ok-bg);color:var(--ok)}
+.a .chip.grey{background:#EDF1F3;color:var(--cadet)}
+.a .card{border-radius:8px;background:#fff;box-shadow:var(--shadow);overflow:hidden}
+.a .ph{height:110px;background:linear-gradient(150deg,#1F4E5F,#0B2C3C);display:grid;place-items:center;color:#fff;font-size:22px;position:relative}
+.a .loc{position:absolute;bottom:6px;left:8px;right:8px;color:#fff;font-size:10.5px;font-weight:700}
+.a .bd{padding:12px}
+.a .pricerow{display:flex;justify-content:space-between;align-items:flex-start}
+.a .price{color:var(--coral);font-weight:800;font-size:16px}
+.a .tc{background:var(--ok);color:#fff;border-radius:6px;padding:6px 10px;text-align:center}
+.a .tc.warn{background:var(--warn)}
+.a .tc.trap{background:var(--trap)}
+.a .tc .l{font-size:7.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;opacity:.9;display:block}
+.a .tc .v{font-family:'Poppins';font-weight:700;font-size:12.5px}
+.a .ttl{color:var(--navy);font-weight:700;font-size:14.5px;font-family:'Poppins';margin:4px 0 2px}
+.a .note{font-size:10px;color:var(--cadet)}
+.a .feats{display:flex;border-top:1px solid #EDF1F3;margin-top:8px}
+.a .f{flex:1;text-align:center;padding:7px 2px;border-right:1px solid #EDF1F3;font-size:10px;color:var(--cadet)}
+.a .f b{display:block;font-size:13px;color:var(--navy);font-family:'Poppins'}
+.a .f:last-child{border:none}
+.a .agent{display:flex;align-items:center;gap:8px;background:var(--cultured);padding:8px 10px}
+.a .av{width:28px;height:28px;border-radius:50%;background:#FEF3F1;color:var(--coral-dark);display:grid;place-items:center;font-size:11px;font-weight:800}
+.a .an{font-weight:800;font-size:12px;color:var(--navy)}
+.a .sq2{margin-left:auto;display:flex;gap:6px}
+.a .sq2 i{width:24px;height:24px;border:1px solid #E3E9EC;border-radius:4px;display:grid;place-items:center;font-style:normal;font-size:10px;color:var(--navy)}
+/* detail strip */
+.strip{max-width:1400px;margin:26px auto 0;display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.panel{background:#fff;border-radius:12px;box-shadow:var(--shadow);padding:20px 22px}
+.panel h3{font-size:15px;color:var(--navy);margin-bottom:10px}
+.panel ul{list-style:none;font-size:12.5px;color:#334155;line-height:2}
+.panel .keep li::before{content:"✓ ";color:var(--ok);font-weight:800}
+.panel .change li::before{content:"→ ";color:var(--coral);font-weight:800}
+.panel .risk li::before{content:"⚠ ";color:var(--warn);font-weight:800}
+.legal{grid-column:1/-1;background:#FFF7ED;border:2px solid #FED7AA;border-radius:12px;padding:16px 20px;font-size:12.5px;color:#9A3412;max-width:1400px;margin:0 auto}
+.legal b{display:block;margin-bottom:4px}
+.footer{max-width:1400px;margin:18px auto 0;text-align:center;font-size:11.5px;color:var(--cadet)}
+</style>
+</head>
+<body>
+<div class="intro">
+  <h1>Design Change Proposal — before &amp; after</h1>
+  <p>You asked to see what I'd change before I touch anything. Below: the <b>same two property cards</b> rendered in your current inner-page style (left) and in the proposed ComfyHome design system (right). It is <b>not</b> a homeverse clone — it's an evolution of <i>your own</i> homepage look (navy + coral + Poppins) extended into a system we legally own. Nothing is changed until you approve.</p>
+</div>
+
+<div class="compare">
+  <div class="frame b">
+    <div class="frame-bar"><span class="badge b-now">NOW</span> Current inner-page style (default Bootstrap)</div>
+    <div class="viewport">
+      <div class="pagehead"><h2>List of Properties</h2></div>
+      <div class="filterbar">
+        <input placeholder="Search..."><input placeholder="Min Price">
+        <input placeholder="Max Price"><input placeholder="Bedrooms">
+        <button class="apply">Apply Filters</button>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <div class="ph">🏢<div class="loc">Aboke Phase 2, Odo Ona, Ibadan</div></div>
+          <div class="bd">
+            <div class="price">₦200,000.00/Year</div>
+            <div class="ttl">2 Bedroom Flat</div>
+            <div class="feats"><div class="f"><b>2</b>Bedrooms</div><div class="f"><b>2</b>Bathrooms</div><div class="f"><b>300</b>Square Ft</div></div>
+            <div class="agent"><div class="av">👤</div><div><div class="an">Agent Name</div><small style="color:var(--cadet)">admin</small></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="ph">🏡<div class="loc">Moniya, Ibadan</div></div>
+          <div class="bd">
+            <div class="price">₦450,000.00/Year</div>
+            <div class="ttl">Mini Flat</div>
+            <div class="feats"><div class="f"><b>1</b>Bedrooms</div><div class="f"><b>1</b>Bathrooms</div><div class="f"><b>450</b>Square Ft</div></div>
+            <div class="agent"><div class="av">👤</div><div><div class="an">Agent Name</div><small style="color:var(--cadet)">admin</small></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame a">
+    <div class="frame-bar"><span class="badge b-after">PROPOSED</span> ComfyHome design system (yours to own)</div>
+    <div class="viewport">
+      <div class="topbar">✉ info@comfyhome.com &nbsp; 📍 15, Odo Ona Ibadan <span class="cta">Add Listing</span></div>
+      <div class="hdr">
+        <span class="logo">🏠 ComfyHome</span>
+        <span class="nav"><span>Home</span><span>Property</span><span>True Cost</span><span>Blog</span></span>
+        <span class="sq"><i>⌕</i><i>👤</i><i>🏠</i></span>
+      </div>
+      <div class="pagehead"><h2 style="color:var(--navy)">List of Properties</h2></div>
+      <div class="sortrow">
+        <b style="color:var(--navy)">All Properties – (15)</b>
+        <span>Sorted by: <span class="chip ok">Lowest true cost</span> <span class="chip grey">Price</span> <span class="chip grey">Newest</span></span>
+      </div>
+      <div class="afilter">
+        <div class="afrow">
+          <input placeholder="🔍 Search area, city, keyword…" style="flex:1.6">
+          <input placeholder="₦ Min rent" style="flex:1">
+          <input placeholder="₦ Max rent" style="flex:1">
+          <select style="flex:1"><option>Any type</option><option>Flat</option><option>Self contain</option><option>Duplex</option></select>
+        </div>
+        <div class="afrow">
+          <input placeholder="📍 Commute to (work) — powers true cost" style="flex:1.6">
+          <div class="slider" style="flex:1.4">
+            <small>Max true cost / yr: <b>≤ ₦2,000,000</b></small>
+            <div class="track"><i></i></div>
+          </div>
+          <select style="flex:.7"><option>Beds: any</option><option>1+</option><option>2+</option><option>3+</option></select>
+          <button class="apply">Apply</button>
+        </div>
+        <div class="afrow chips">
+          <span class="chip blue">For Rent</span><span class="chip grey">For Sale</span>
+          <span style="margin-left:auto;font-size:9.5px;color:var(--cadet)">🆕 filters the current list doesn't have: max TRUE cost + commute destination</span>
+        </div>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <div class="ph">🏢<div class="loc">📍 Aboke Phase 2, Odo Ona, Ibadan</div></div>
+          <div class="bd">
+            <div class="pricerow">
+              <div><div class="price">₦200,000<small style="font-size:10px;color:var(--cadet)">/Year</small></div><div class="ttl">2 Bedroom Flat</div></div>
+              <div class="tc"><span class="l">True cost/yr</span><span class="v">₦764,628</span></div>
+            </div>
+            <div class="note">transport 74% · ⭐ 91 amenities</div>
+            <div class="feats"><div class="f"><b>2</b>Bedrooms</div><div class="f"><b>2</b>Bathrooms</div><div class="f"><b>300</b>Sq Ft</div><div class="f"><b>2.8</b>Km to work</div></div>
+            <div class="agent"><div class="av">AA</div><div><div class="an">Agent Name</div></div>
+              <span class="sq2"><i>♡</i><i>⇄</i><i>⤢</i></span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="ph">🏡<div class="loc">📍 Moniya, Ibadan</div></div>
+          <div class="bd">
+            <div class="pricerow">
+              <div><div class="price">₦450,000<small style="font-size:10px;color:var(--cadet)">/Year</small></div><div class="ttl">Mini Flat</div></div>
+              <div class="tc trap"><span class="l">True cost/yr</span><span class="v">₦1.01M</span></div>
+            </div>
+            <div class="note">🚗 34 km commute — cost trap</div>
+            <div class="feats"><div class="f"><b>1</b>Bedrooms</div><div class="f"><b>1</b>Bathrooms</div><div class="f"><b>450</b>Sq Ft</div><div class="f"><b>34</b>Km to work</div></div>
+            <div class="agent"><div class="av">AA</div><div><div class="an">Agent Name</div></div>
+              <span class="sq2"><i>♡</i><i>⇄</i><i>⤢</i></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="strip">
+  <div class="panel">
+    <h3>What stays (your identity)</h3>
+    <ul class="keep">
+      <li>Navy contact strip + coral "Add Listing" — already yours</li>
+      <li>White header, centered nav, square white icon buttons</li>
+      <li>Light hero with eyebrow + left-rule paragraph (homepage untouched)</li>
+      <li>Orange-bordered search strip on the homepage</li>
+      <li>Coral for prices/CTAs, Poppins headings, Nunito body</li>
+    </ul>
+  </div>
+  <div class="panel">
+    <h3>What changes (and why)</h3>
+    <ul class="change">
+      <li>Inner pages: default Bootstrap → our navy/coral system (fixes the blue "Apply Filters" clash)</li>
+      <li>Card titles: blue → navy (blue stays for links only)</li>
+      <li><b>True-cost badge on every card</b> — the product's signature, green/amber/red = verdict colors</li>
+      <li>"Commute km" + amenity score join the feature row</li>
+      <li>Dark navy table headers + sort chips ("Lowest true cost" default)</li>
+      <li>Card titles get hover affordance; buttons rounded 6–8px consistently</li>
+    </ul>
+  </div>
+</div>
+
+<div class="legal">
+  <b>⚖️ Why this de-risks homeverse</b>
+  homeverse's README says "free to use" but ships <b>no license file</b> — legally that's "all rights reserved." We keep it only as visual reference for your homepage. The proposed system is an original token set (own colors, spacing, components like the TrueCost badge that homeverse doesn't have), written as our own CSS file — so the product's design is unambiguously yours. Phase 2 replaces homeverse's <code>style.css</code> screen-by-screen with it.
+</div>
+
+<div class="footer">Proposal only — no code changed yet. Approve, adjust, or reject any line above.</div>
+</body>
+</html>

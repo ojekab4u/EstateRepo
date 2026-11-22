@@ -86,6 +86,29 @@ class Property(models.Model):
             self.save(update_fields=['true_cost_yearly', 'true_cost_computed_at'])
         return self.true_cost_yearly
 
+    @property
+    def transport_share_pct(self):
+        """Transport share of the cached true cost (int %) — drives the badge tier."""
+        if self.true_cost_yearly is None:
+            return None
+        price = self.price if isinstance(self.price, Decimal) else Decimal(str(self.price))
+        transport = self.true_cost_yearly - price
+        if self.true_cost_yearly <= 0:
+            return None
+        return int(transport / self.true_cost_yearly * 100)
+
+    @property
+    def cost_tier(self):
+        """🟢 efficient < 25% · 🟡 moderate 25–40% · 🔴 cost trap > 40%."""
+        share = self.transport_share_pct
+        if share is None:
+            return None
+        if share < 25:
+            return "ok"
+        if share <= 40:
+            return "warn"
+        return "trap"
+
 class PropertyImage(models.Model):
     property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='images')
     image = models.ImageField(upload_to='property_images/', blank=True) #THE DIRECTORY

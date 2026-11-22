@@ -215,40 +215,54 @@ def property_list(request):
     properties = Property.objects.filter(sale_or_rent=sale_or_rent)
     query = request.GET.get('q', '')
 
-    # Optional: Implement filtering by price, bedrooms, etc.
     price_min = request.GET.get('price_min')
     price_max = request.GET.get('price_max')
     bedrooms = request.GET.get('bedrooms')
     bathrooms = request.GET.get('bathrooms')
+    property_type = request.GET.get('property_type')
+    max_true_cost = request.GET.get('max_true_cost')
 
     if query:
-        properties = properties.filter(title__icontains=query)
+        properties = properties.filter(
+            Q(title__icontains=query) | Q(city__icontains=query) | Q(address__icontains=query))
     if price_min:
         properties = properties.filter(price__gte=price_min)
     if price_max:
         properties = properties.filter(price__lte=price_max)
     if bedrooms:
-        properties = properties.filter(bedrooms=bedrooms)
+        properties = properties.filter(bedrooms__gte=bedrooms)   # "2+" semantics
     if bathrooms:
-        properties = properties.filter(bathrooms=bathrooms)
+        properties = properties.filter(bathrooms__gte=bathrooms)
+    if property_type:
+        properties = properties.filter(property_type=property_type)
+    if max_true_cost:
+        properties = properties.filter(true_cost_yearly__lte=max_true_cost)
 
     # Sorting — true-cost sort is the product's signature (DB-cached, no API)
     sort = request.GET.get('sort', '')
-    if sort == 'true_cost':
-        properties = properties.order_by(
-            F('true_cost_yearly').asc(nulls_last=True))
-    elif sort == 'price':
+    if sort == 'price':
         properties = properties.order_by('price')
-    else:
+    elif sort == 'newest':
         properties = properties.order_by('-created_at')
+    else:  # default: lowest true cost
+        sort = 'true_cost'
+        properties = properties.order_by(F('true_cost_yearly').asc(nulls_last=True))
+
+    from django.core.paginator import Paginator
+    paginator = Paginator(properties, 12)
+    page_obj = paginator.get_page(request.GET.get('page'))
 
     context = {
-        'properties': properties,
+        'page_obj': page_obj,
+        'properties': page_obj.object_list,
+        'total_count': paginator.count,
         'query': query,
         'price_min': price_min,
         'price_max': price_max,
         'bedrooms': bedrooms,
         'bathrooms': bathrooms,
+        'property_type': property_type,
+        'max_true_cost': max_true_cost,
         'sale_or_rent': sale_or_rent,
         'sort': sort,
     }
