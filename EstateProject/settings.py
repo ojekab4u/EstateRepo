@@ -29,10 +29,17 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "dev-only-insecure-key-change-me")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", "").lower() in ("1", "true", "yes")
 
-ALLOWED_HOSTS = [h.strip() for h in os.environ.get(
-    "ALLOWED_HOSTS",
-    "comfyhome.onrender.com,localhost,127.0.0.1",
-).split(",") if h.strip()]
+# Hosts allowed to reach the app. Set ALLOWED_HOSTS in the environment to
+# override (comma-separated, no quotes). An empty/garbage value must never
+# produce an empty list — that 400s every request.
+_DEFAULT_ALLOWED_HOSTS = "comfyhome.onrender.com,localhost,127.0.0.1"
+ALLOWED_HOSTS = []
+for _h in os.environ.get("ALLOWED_HOSTS", _DEFAULT_ALLOWED_HOSTS).split(","):
+    _h = _h.strip().strip('"').strip("'").strip()
+    if _h and _h not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(_h)
+if not ALLOWED_HOSTS:
+    ALLOWED_HOSTS = [h.strip() for h in _DEFAULT_ALLOWED_HOSTS.split(",")]
 # if ALLOWED_HOSTS == ['']:
 #     DEBUG = True
 
