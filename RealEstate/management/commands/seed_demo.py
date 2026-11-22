@@ -168,6 +168,8 @@ class Command(BaseCommand):
                     "bedrooms": beds,
                     "bathrooms": baths,
                     "square_feet": sqft,
+                    "latitude": lat,
+                    "longitude": lng,
                 },
             )
             if prop.main_image:  # already seeded fully
@@ -181,9 +183,6 @@ class Command(BaseCommand):
                 )
                 if idx == 0:
                     prop.main_image.save(f"seed_{count}_main.jpg", img, save=True)
-                    # keep coords handy for Phase 1B (lat/lng fields return then)
-                    prop.description = f"{desc} (coords: {lat}, {lng})"
-                    prop.save(update_fields=["description"])
                 else:
                     extra = PropertyImage(property=prop)
                     extra.image.save(f"seed_{count}_{idx}.jpg", img, save=True)

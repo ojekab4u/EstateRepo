@@ -93,33 +93,36 @@
 </div>
 
     <script>
-        // Zero-cost map: Leaflet + OpenStreetMap tiles + Nominatim geocoding.
-        // (No API key, no billing. Server also caches geocodes — this client
-        // call is a display-time fallback.)
+        // Zero-cost map: Leaflet + Esri tiles. Coordinates are stored on the
+        // property (geocoded once at listing creation), so this page normally
+        // never calls a geocoder at all. Fallback: client-side Nominatim.
         async function initMap() {
-            const address = "{{ property.address }}, {{ property.city }}, {{ property.state }}, {{ property.zip_code }}";
             const map = L.map("map").setView([7.378, 3.898], 13);  // Ibadan default
-            // Esri ArcGIS Online basemap tiles: keyless and permits app use
-            // with attribution. (CARTO now requires an API key; OSM blocked us.)
             L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
                 maxZoom: 19,
                 attribution: "Tiles &copy; Esri — Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community"
             }).addTo(map);
-            try {
-                const r = await fetch("https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=ng&q=" + encodeURIComponent(address), {
-                    headers: { "Accept": "application/json" }
-                });
-                const results = await r.json();
-                if (results && results.length) {
-                    const lat = parseFloat(results[0].lat), lon = parseFloat(results[0].lon);
-                    map.setView([lat, lon], 15);
-                    L.marker([lat, lon]).addTo(map)
-                        .bindPopup("{{ property.title|escapejs }}")
-                        .openPopup();
+
+            const marker = (lat, lon, label) => {
+                map.setView([lat, lon], 15);
+                L.marker([lat, lon]).addTo(map).bindPopup(label).openPopup();
+            };
+
+            {% if property_lat and property_lng %}
+                marker({{ property_lat|floatformat:"6" }}, {{ property_lng|floatformat:"6" }}, "{{ property.title|escapejs }}");
+            {% else %}
+                try {
+                    const r = await fetch("https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=ng&q=" + encodeURIComponent("{{ property_address_full|escapejs }}"), {
+                        headers: { "Accept": "application/json" }
+                    });
+                    const results = await r.json();
+                    if (results && results.length) {
+                        marker(parseFloat(results[0].lat), parseFloat(results[0].lon), "{{ property.title|escapejs }}");
+                    }
+                } catch (e) {
+                    console.warn("Geocode unavailable, showing default view");
                 }
-            } catch (e) {
-                console.warn("Geocode unavailable, showing default view");
-            }
+            {% endif %}
         }
     </script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">

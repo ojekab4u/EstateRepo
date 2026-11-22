@@ -45,8 +45,10 @@ class Property(models.Model):
     bedrooms = models.IntegerField()
     bathrooms = models.IntegerField()
     square_feet = models.IntegerField()
-    # latitude = models.FloatField()
-    # longitude = models.FloatField()    
+    # Coordinates resolved once (at listing creation / seeding) so maps and
+    # the cost estimator never re-geocode. Null = fall back to live geocoding.
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
     main_image = models.ImageField(upload_to='property_images/') #THE DIRECTORY
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(default=now)

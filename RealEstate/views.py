@@ -289,15 +289,16 @@ def property_detail(request, pk):
     property = get_object_or_404(Property, pk=pk)
     place_type = request.GET.get('place_type')  # Gets 'market' or other place types
     images = property.images.all()
-    google_api_key = settings.GOOGLE_API_KEY
 
     context = {
         'property': property,
         'place_type': place_type,
         'images': images,
-        'google_api_key': google_api_key
+        'property_lat': property.latitude,
+        'property_lng': property.longitude,
+        'property_address_full': f"{property.address}, {property.city}, {property.state}, {property.zip_code}",
     }
-    
+
     return render(request, 'property_detail.html', context)
 
 def agent_required(user):
@@ -318,6 +319,13 @@ def property_create(request):
         if property_form.is_valid():
             property = property_form.save(commit=False)
             property.owner = request.user
+            # Geocode ONCE at listing creation (cached in geo.py, ~1s); store
+            # coords so maps and the estimator never re-geocode. Best-effort:
+            # a failed geocode leaves coords null and the map falls back.
+            _coords = geo.geocode(
+                f"{property.address}, {property.city}, {property.state}, {property.zip_code}")
+            if _coords:
+                property.latitude, property.longitude = _coords['lat'], _coords['lng']
             property.save()
 
             for image in images:
@@ -461,9 +469,13 @@ def cost_estimation_detail(request, property_id):
     user = request.user
     vehicles = Vehicle.objects.filter(user=user)    
     
-    # Geocode the property address to get lat/lng (cached; free OSM provider by default)
+    # Geocode the property address to get lat/lng (cached; free OSM provider by default).
+    # Properties with stored coords skip geocoding entirely.
     property_address = f"{property.address}, {property.city}, {property.state}, {property.zip_code}"
-    property_lat_lng = geo.geocode(property_address)
+    if property.latitude is not None and property.longitude is not None:
+        property_lat_lng = {"lat": property.latitude, "lng": property.longitude, "display": ""}
+    else:
+        property_lat_lng = geo.geocode(property_address)
 
     if request.user.is_agent:
         messages.info(request, "Agents are not allowed to use estimator")

@@ -107,6 +107,25 @@ DATABASES = {
     }
 }
 
+# PostgreSQL plug-and-play: set DATABASE_URL in the environment (Render ->
+# your Postgres instance -> "Internal Database URL") and this app switches
+# over automatically. No dependency needed — parsed by hand.
+if os.environ.get("DATABASE_URL"):
+    from urllib.parse import urlparse
+    _url = urlparse(os.environ["DATABASE_URL"])
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': _url.path.lstrip('/'),
+            'USER': _url.username or '',
+            'PASSWORD': _url.password or '',
+            'HOST': _url.hostname or '',
+            'PORT': str(_url.port or '5432'),
+            'CONN_MAX_AGE': 60,
+            'OPTIONS': {'sslmode': 'require'},
+        }
+    }
+
 AUTH_USER_MODEL = 'RealEstate.User'
 LOGIN_URL = "/login"  # absolute path — required by user_passes_test redirects
 
