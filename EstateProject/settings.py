@@ -40,6 +40,12 @@ for _h in os.environ.get("ALLOWED_HOSTS", _DEFAULT_ALLOWED_HOSTS).split(","):
         ALLOWED_HOSTS.append(_h)
 if not ALLOWED_HOSTS:
     ALLOWED_HOSTS = [h.strip() for h in _DEFAULT_ALLOWED_HOSTS.split(",")]
+
+# Render.com always injects its external hostname into the environment —
+# trust it unconditionally so a bad env var can never lock the site out.
+_render_host = os.environ.get("RENDER_EXTERNAL_HOSTNAME", "").strip()
+if _render_host and _render_host not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(_render_host)
 # if ALLOWED_HOSTS == ['']:
 #     DEBUG = True
 
