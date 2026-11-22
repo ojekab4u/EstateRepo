@@ -36,7 +36,7 @@
 .ch-band .crumb{font-size:12px;color:var(--ch-cadet)}
 /* ---------- layout ---------- */
 .ch-wrap{display:grid;grid-template-columns:280px 1fr;gap:22px;padding:14px 28px 40px;align-items:start}
-@media (max-width: 900px){ .ch-wrap{grid-template-columns:1fr} }
+@media (max-width: 840px){ .ch-wrap{grid-template-columns:1fr} }
 /* ---------- filter panel ---------- */
 .ch-filter{background:#fff;border-radius:var(--ch-radius);box-shadow:var(--ch-shadow);padding:18px}
 .ch-filter h3{font-family:'Poppins';font-size:14px;color:var(--ch-navy);margin:0 0 12px}

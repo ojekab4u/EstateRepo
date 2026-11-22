@@ -54,6 +54,7 @@ if _render_host and _render_host not in ALLOWED_HOSTS:
 # Application definition
 
 INSTALLED_APPS = [
+    'whitenoise.runserver_nostatic',  # let WhiteNoise serve statics in dev too
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -185,8 +186,7 @@ MEDIA_URL = '/media/'
 # Static files configuration (Optional if using static files)
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-if DEBUG:
-    STATICFILES_DIRS = [BASE_DIR / 'static']
+STATICFILES_DIRS = [BASE_DIR / 'static']  # always — collectstatic must see our files in prod too
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
