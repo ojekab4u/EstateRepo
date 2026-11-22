@@ -3,8 +3,8 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils.timezone import now
 from django.utils import timezone
-from django.contrib.auth.models import AbstractUser
-from django.db import models
+from decimal import Decimal
+
 
 
 
@@ -49,12 +49,42 @@ class Property(models.Model):
     # the cost estimator never re-geocode. Null = fall back to live geocoding.
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
+    # True-cost cache for listings/search (computed for a STANDARD profile:
+    # 8 km one-way commute, 10 trips/week, petrol, typical car). Per-user
+    # estimates live in HistoricalData; this powers badges & sorting with
+    # zero API calls.
+    true_cost_yearly = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    true_cost_computed_at = models.DateTimeField(null=True, blank=True)
     main_image = models.ImageField(upload_to='property_images/') #THE DIRECTORY
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(default=now)
     
     def __str__(self):
         return self.title
+
+    # Standard-profile assumptions for listing-level true cost
+    TRUE_COST_COMMUTE_KM = 8.0        # one-way, typical city commute
+    TRUE_COST_TRIPS_PER_WEEK = 10     # 2/day, weekdays
+    TRUE_COST_RATE_LKM = 0.068        # typical small car, litres/km
+
+    def compute_true_cost(self, save=True):
+        """Rent + standard-profile transport, using the latest admin-set fuel
+        price. Returns None (and leaves the cache empty) if no fuel price."""
+        from django.utils import timezone
+        fuel_price = FuelPrice.latest('petrol')
+        if fuel_price is None:
+            return None
+        km_yearly = (self.TRUE_COST_COMMUTE_KM * 2
+                     * self.TRUE_COST_TRIPS_PER_WEEK * 52)
+        transport_yearly = (Decimal(str(km_yearly))
+                            * Decimal(str(self.TRUE_COST_RATE_LKM))
+                            * fuel_price)
+        price = self.price if isinstance(self.price, Decimal) else Decimal(str(self.price))
+        self.true_cost_yearly = price + transport_yearly
+        self.true_cost_computed_at = timezone.now()
+        if save:
+            self.save(update_fields=['true_cost_yearly', 'true_cost_computed_at'])
+        return self.true_cost_yearly
 
 class PropertyImage(models.Model):
     property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='images')
@@ -85,6 +115,25 @@ class HistoricalData(models.Model):
     transportation_cost = models.DecimalField(max_digits=10, decimal_places=2)
     total_effective_cost = models.DecimalField(max_digits=10, decimal_places=2)
     date_field = models.DateTimeField(default=timezone.now)
+
+
+class FuelPrice(models.Model):
+    """Admin-managed national fuel prices — the estimator pre-fills from here."""
+    FUEL_CHOICES = [('petrol', 'Petrol'), ('diesel', 'Diesel'), ('cng', 'CNG')]
+    fuel_type = models.CharField(max_length=10, choices=FUEL_CHOICES)
+    price_per_litre = models.DecimalField(max_digits=8, decimal_places=2)
+    effective_date = models.DateField(default=timezone.now)
+
+    class Meta:
+        ordering = ['-effective_date', '-id']
+
+    def __str__(self):
+        return f"{self.fuel_type} ₦{self.price_per_litre}/L ({self.effective_date})"
+
+    @classmethod
+    def latest(cls, fuel_type='petrol'):
+        row = cls.objects.filter(fuel_type=fuel_type).first()
+        return row.price_per_litre if row else None
     
   
 class Vehicle(models.Model):

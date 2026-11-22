@@ -148,7 +148,64 @@ class SavedEstimatesTests(BaseTest):
         self.assertContains(r, "304,400.00")
 
 
-class PublicPagesTests(BaseTest):
+class PricingEngineTests(BaseTest):
+    def test_fuel_price_latest(self):
+        from .models import FuelPrice
+        from django.utils import timezone as tz
+        FuelPrice.objects.create(fuel_type="petrol", price_per_litre=Decimal("900"), effective_date=tz.now().date())
+        FuelPrice.objects.create(fuel_type="petrol", price_per_litre=Decimal("998"), effective_date=tz.now().date())
+        self.assertEqual(FuelPrice.latest("petrol"), Decimal("998"))
+        self.assertIsNone(FuelPrice.latest("diesel"))
+
+    def test_compute_true_cost_math(self):
+        from .models import FuelPrice
+        from django.utils import timezone as tz
+        FuelPrice.objects.create(fuel_type="petrol", price_per_litre=Decimal("998"), effective_date=tz.now().date())
+        result = self.property_.compute_true_cost(save=True)
+        # 8 km one-way x 2 x 10 trips/wk x 52 wks = 8320 km/yr
+        # 8320 x 0.068 L/km x 998 = 564628.48
+        expected = Decimal(str(self.property_.price)) + Decimal("564628.48")
+        self.assertEqual(result, expected)
+        self.property_.refresh_from_db()
+        self.assertEqual(self.property_.true_cost_yearly, expected)
+
+    def test_compute_skipped_without_fuel_price(self):
+        result = self.property_.compute_true_cost()
+        self.assertIsNone(result)
+        self.assertIsNone(self.property_.true_cost_yearly)
+
+    def test_property_list_sorts_by_true_cost(self):
+        from .models import FuelPrice
+        from django.utils import timezone as tz
+        FuelPrice.objects.create(fuel_type="petrol", price_per_litre=Decimal("998"), effective_date=tz.now().date())
+        cheap = Property.objects.create(owner=self.agent, main_image=_tiny_image(),
+                                        **dict(PROPERTY_FIELDS, title="Cheap Rent Far", price="100000"))
+        dear = Property.objects.create(owner=self.agent, main_image=_tiny_image(),
+                                       **dict(PROPERTY_FIELDS, title="Dear Rent Near", price="900000"))
+        cheap.compute_true_cost(); dear.compute_true_cost()
+        r = self.client.get(reverse("property_list") + "?sort=true_cost")
+        titles = [p.title for p in r.context["properties"]]
+        self.assertLess(titles.index("Cheap Rent Far"), titles.index("Dear Rent Near"))
+
+    def test_estimator_defaults_to_admin_fuel_price(self):
+        from .models import FuelPrice
+        from django.utils import timezone as tz
+        FuelPrice.objects.create(fuel_type="petrol", price_per_litre=Decimal("998"), effective_date=tz.now().date())
+        self.client.login(username="cust1", password="Passw0rd!23")
+        with patch("RealEstate.views.geo.geocode",
+                   return_value={"lat": 7.39, "lng": 3.91, "display": "T"}), \
+             patch("RealEstate.views.geo.route_distance_km", return_value=5.0):
+            r = self.client.post(
+                reverse("cost_estimation_detail", args=[self.property_.pk]),
+                {"num_cars": "1", "vehicle_1": str(self.vehicle.pk),
+                 "work_location_1": "Ring Road, Ibadan", "work_trips_per_week_1": "10"})
+        self.assertEqual(r.status_code, 200)
+        # ₦998/L applied: 5200 km × 0.068 × 998 = ₦352,892.80/yr
+        row = HistoricalData.objects.filter(user=self.customer).latest("id")
+        self.assertEqual(row.transportation_cost, Decimal("352892.80"))
+
+
+
     def test_public_pages_render(self):
         for url in ["/", "/property", "/about", "/contact", "/blog", "/login",
                     "/customer-register/", "/agent-register/"]:

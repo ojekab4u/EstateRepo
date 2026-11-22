@@ -120,9 +120,23 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
+        # Admin-managed fuel prices come first — the true-cost cache below
+        # needs them even when property seeding is skipped.
+        from RealEstate.models import FuelPrice
+        if not FuelPrice.objects.exists():
+            from django.utils import timezone as tz
+            FuelPrice.objects.create(fuel_type="petrol", price_per_litre=Decimal("998.00"),
+                                     effective_date=tz.now().date())
+            FuelPrice.objects.create(fuel_type="diesel", price_per_litre=Decimal("1150.00"),
+                                     effective_date=tz.now().date())
+
         demo_agent = User.objects.filter(username="demoagent").first()
         if demo_agent and Property.objects.filter(owner=demo_agent).exists() and not options["force"]:
-            self.stdout.write("Demo data already present — skipping (use --force to re-seed).")
+            # Properties already seeded — still refresh the true-cost cache,
+            # then skip the rest.
+            recomputed = sum(1 for p in Property.objects.all() if p.compute_true_cost() is not None)
+            self.stdout.write(f"Demo data already present — refreshed true-cost cache for "
+                              f"{recomputed} property(ies) (use --force to re-seed everything).")
             return
 
         self.stdout.write("Seeding demo data...")
@@ -188,6 +202,9 @@ class Command(BaseCommand):
                     extra.image.save(f"seed_{count}_{idx}.jpg", img, save=True)
             count += 1
 
+        # Admin-managed national fuel prices (estimator + true-cost cache)
+        # -> moved to the top of handle() so the skip path still refreshes them
+
         # Sample saved estimates for the demo customer (numbers are plausible
         # pre-computed values — no network calls at seed time)
         if not HistoricalData.objects.filter(user=customer).exists():
@@ -213,3 +230,7 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(
             f"Seeded {count} properties, demo agent (demoagent/{DEMO_PASSWORD}), "
             f"demo customer (democust/{DEMO_PASSWORD}), admin (demoadmin/{DEMO_PASSWORD})."))
+
+        # True-cost cache for every property (uses the fuel price above)
+        recomputed = sum(1 for p in Property.objects.all() if p.compute_true_cost() is not None)
+        self.stdout.write(f"True-cost cache refreshed for {recomputed} property(ies).")

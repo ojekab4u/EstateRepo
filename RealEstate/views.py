@@ -28,7 +28,7 @@ from .utils import( get_distance_matrix,
 from django.contrib.auth.models import User
 
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.db.models import Count
+from django.db.models import Count, F
 import random
 from django.db.models import Q
 from django.core.mail import send_mail
@@ -232,6 +232,16 @@ def property_list(request):
     if bathrooms:
         properties = properties.filter(bathrooms=bathrooms)
 
+    # Sorting — true-cost sort is the product's signature (DB-cached, no API)
+    sort = request.GET.get('sort', '')
+    if sort == 'true_cost':
+        properties = properties.order_by(
+            F('true_cost_yearly').asc(nulls_last=True))
+    elif sort == 'price':
+        properties = properties.order_by('price')
+    else:
+        properties = properties.order_by('-created_at')
+
     context = {
         'properties': properties,
         'query': query,
@@ -240,6 +250,7 @@ def property_list(request):
         'bedrooms': bedrooms,
         'bathrooms': bathrooms,
         'sale_or_rent': sale_or_rent,
+        'sort': sort,
     }
     return render(request, 'property_list.html', context)
 
@@ -331,6 +342,7 @@ def property_create(request):
             for image in images:
                 PropertyImage.objects.create(property=property, image=image)
 
+            property.compute_true_cost()
             messages.success(request, 'Property created successfully!')
             return redirect('agent_dashboard')
     else:
@@ -410,6 +422,7 @@ def property_edit(request, pk):
             form.save()
             for image in images:
                 PropertyImage.objects.create(property=prop, image=image)
+            prop.compute_true_cost()  # price may have changed
             messages.success(request, 'Listing updated.')
             return redirect('agent_dashboard')
     else:
@@ -457,7 +470,7 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from decimal import Decimal, InvalidOperation
-from .models import Property, Vehicle, HistoricalData
+from .models import Property, Vehicle, HistoricalData, FuelPrice
 from .utils import get_place_id, get_route_distance_from_place_ids
 
 logger = logging.getLogger(__name__)
@@ -519,8 +532,12 @@ def cost_estimation_detail(request, property_id):
 
         # Ensure fuel price is valid
         current_fuel_price = request.POST.get('current_fuel_price')
+        if not current_fuel_price:
+            # Fall back to the admin-managed national fuel price
+            latest = FuelPrice.latest('petrol')
+            current_fuel_price = str(latest) if latest is not None else "0"
         try:
-            current_fuel_price = Decimal(current_fuel_price) if current_fuel_price else Decimal(0)
+            current_fuel_price = Decimal(current_fuel_price)
         except InvalidOperation:
             return HttpResponse("Invalid fuel price. Please enter a valid number.")
 
@@ -673,8 +690,9 @@ def cost_estimation_detail(request, property_id):
         'property': property,
         'vehicles': vehicles,
         'house_lat': house_lat,
-        'house_lng': house_lng, 
-        'google_api_key': settings.GOOGLE_API_KEY
+        'house_lng': house_lng,
+        'google_api_key': settings.GOOGLE_API_KEY,
+        'default_fuel_price': FuelPrice.latest('petrol') or "",
     }
     
     return render(request, 'cost_estimation_detail.html', context)
