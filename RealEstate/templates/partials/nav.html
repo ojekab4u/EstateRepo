@@ -1,0 +1,43 @@
+{% load static %}
+<!-- ComfyHome shared top strip + header (design-system components) -->
+<div class="ch-topbar">
+    <a href="mailto:info@comfyhome.com">✉ info@comfyhome.com</a>
+    <a>📍 15, Odo Ona Ibadan, Nigeria</a>
+    <span class="ch-cta">
+        <a class="ch-btn ch-btn-coral ch-btn-sm" href="{% url 'property_create_new' %}">＋ Add Listing</a>
+    </span>
+</div>
+
+<header class="ch-header">
+    <a href="{% url 'index' %}"><img class="ch-logo" src="{% static 'images/logo.png' %}" alt="ComfyHome"></a>
+    <nav class="ch-nav">
+        <a href="{% url 'index' %}" {% if request.path == '/' %}class="on"{% endif %}>Home</a>
+        <a href="{% url 'property_list' %}" {% if '/property' in request.path and 'property_search' not in request.path %}class="on"{% endif %}>Property</a>
+        <a href="{% url 'about' %}" {% if request.path == '/about' %}class="on"{% endif %}>About</a>
+        <a href="{% url 'blog' %}" {% if request.path == '/blog' %}class="on"{% endif %}>Blog</a>
+        <a href="{% url 'contact' %}" {% if request.path == '/contact' %}class="on"{% endif %}>Contact</a>
+    </nav>
+    <div class="ch-iconbtns">
+        <a class="ch-sq" href="{% url 'property_list' %}" title="Search properties" aria-label="Search properties">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        </a>
+        {% if user.is_authenticated %}
+            {% if user.is_agent %}
+                <a class="ch-sq" href="{% url 'agent_dashboard' %}" title="Agent dashboard" aria-label="Account">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>
+                </a>
+            {% else %}
+                <a class="ch-sq" href="{% url 'my_estimates' %}" title="My estimates" aria-label="Account">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>
+                </a>
+            {% endif %}
+        {% else %}
+            <a class="ch-sq" href="{% url 'login' %}" title="Login" aria-label="Login">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>
+            </a>
+        {% endif %}
+        <a class="ch-sq {% if '/property' in request.path %}on{% endif %}" href="{% url 'property_list' %}" title="Properties" aria-label="Properties">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m3 11 9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+        </a>
+    </div>
+</header>

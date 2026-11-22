@@ -11,10 +11,10 @@
  <!-- 
     - custom css link
   -->
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/comfyhome.css' %}">
 </head>
 <body>
-    {% include "legacy_theme/nav.html" %}
+    {% include "partials/nav.html" %}
     <h1>My Vehicles</h1>
     <ul>
         {% for vehicle in vehicles %}

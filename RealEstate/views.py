@@ -181,9 +181,17 @@ def log_them_out(request):
 
 
 def index(request):
-    all_properties = list(Property.objects.all())
-    properties = random.sample(all_properties, min(3, len(all_properties)))  # Pick 3 random properties or fewer if there are less than 3
-    return render(request, 'legacy_theme/index.html', {'properties': properties})
+    featured = (Property.objects
+                .order_by(F('true_cost_yearly').asc(nulls_last=True))
+                .prefetch_related('images'))[:3]
+    context = {
+        'featured': featured,
+        'listing_count': Property.objects.count(),
+        'estimate_runs': HistoricalData.objects.count(),
+        'petrol': FuelPrice.latest('petrol'),
+        'diesel': FuelPrice.latest('diesel'),
+    }
+    return render(request, 'home.html', context)
 
 def about(request):
     if request.method == "POST":

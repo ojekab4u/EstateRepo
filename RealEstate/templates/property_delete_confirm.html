@@ -7,10 +7,10 @@
     <title>Delete Listing — {{ property.title }}</title>
     <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
     <link rel="icon" type="image/png" href="{% static 'images/fav.png' %}">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/comfyhome.css' %}">
 </head>
 <body>
-    {% include "legacy_theme/nav.html" %}
+    {% include "partials/nav.html" %}
 
     <div class="container py-4" style="max-width: 560px;">
         <h1 class="h4">Delete this listing?</h1>
@@ -24,6 +24,6 @@
         </form>
     </div>
 
-    {% include "legacy_theme/footer.html" %}
+    {% include "partials/footer.html" %}
 </body>
 </html>

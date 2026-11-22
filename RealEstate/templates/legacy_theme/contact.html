@@ -13,13 +13,13 @@
     <!-- 
     - custom css link
   -->
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/comfyhome.css' %}">
     <link rel="stylesheet" href="{% static 'css/contact.css'%}">
 
     <link rel="icon" type="image/png" href="{% static 'fav.png' %}">
   </head>
 <body>
-    {% include "legacy_theme/nav.html" %}
+    {% include "partials/nav.html" %}
     <div class="contact-section">
         <h1>Contact Us</h1>
         <div class="contact-info">
@@ -41,7 +41,7 @@
     </div>
 
 
-    {% include "legacy_theme/footer.html" %}
+    {% include "partials/footer.html" %}
 
 
      <!-- 

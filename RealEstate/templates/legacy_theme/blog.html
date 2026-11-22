@@ -14,13 +14,13 @@
          <!-- 
     - custom css link
   -->
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/comfyhome.css' %}">
 
     <link rel="stylesheet" href="{% static 'css/blog.css'%}">
     <link rel="icon" type="image/png" href="{% static 'images/fav.png' %}">
 </head>
 <body>
-    {% include "legacy_theme/nav.html" %}
+    {% include "partials/nav.html" %}
     
     <div class="blog-section">
         <h1>Our Blog</h1>
@@ -36,7 +36,7 @@
         </div>
     </div>
 
-    {% include "legacy_theme/footer.html" %}
+    {% include "partials/footer.html" %}
 
 
 </body>

@@ -139,12 +139,12 @@
      <!-- 
     - custom css link
   -->
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/comfyhome.css' %}">
     <link rel="stylesheet" href="{% static 'css/estimation.css'%}">
     <link rel="icon" type="image/png" href="{% static 'fav.png' %}">
 </head>
  <body>
-    {% include "legacy_theme/nav.html" %}
+    {% include "partials/nav.html" %}
     <div class="property-detail-container">
         <div class="property-header text-center">
             <h1>{{ property.title }}</h1>
@@ -304,7 +304,7 @@
     {% comment %} 
     </head>
     <body>
-        {% include "legacy_theme/nav.html" %}
+        {% include "partials/nav.html" %}
         <div class="property-detail-container">
             <div class="property-header text-center">
             <h1>{{ property.title }}</h1>
@@ -506,7 +506,7 @@
     <!-- 
         - custom css link
         -->
-        <link rel="stylesheet" href="{% static 'css/style.css' %}">
+        <link rel="stylesheet" href="{% static 'css/comfyhome.css' %}">
         <link rel="stylesheet" href="{% static 'css/estimation.css'%}">
         <link rel="icon" type="image/png" href="{% static 'images/fav.png' %}">
  
@@ -516,7 +516,7 @@
 </head>
     
     <body>
-        {% include "legacy_theme/nav.html" %}
+        {% include "partials/nav.html" %}
         
         <div class="container-fluid">
             <div class="property-detail-container">
@@ -800,6 +800,6 @@
         </script>
 </body>
     
-    {% include "legacy_theme/footer.html" %}
+    {% include "partials/footer.html" %}
 </body>
 </html>
