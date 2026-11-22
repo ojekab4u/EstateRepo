@@ -99,12 +99,11 @@
         async function initMap() {
             const address = "{{ property.address }}, {{ property.city }}, {{ property.state }}, {{ property.zip_code }}";
             const map = L.map("map").setView([7.378, 3.898], 13);  // Ibadan default
-            // CARTO free basemap CDN (keyless, permits light production use).
-            // Underlying map data: OpenStreetMap contributors.
-            L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+            // Esri ArcGIS Online basemap tiles: keyless and permits app use
+            // with attribution. (CARTO now requires an API key; OSM blocked us.)
+            L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
                 maxZoom: 19,
-                subdomains: "abcd",
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                attribution: "Tiles &copy; Esri — Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community"
             }).addTo(map);
             try {
                 const r = await fetch("https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=ng&q=" + encodeURIComponent(address), {
