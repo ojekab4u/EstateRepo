@@ -183,24 +183,24 @@ def log_them_out(request):
 def index(request):
     all_properties = list(Property.objects.all())
     properties = random.sample(all_properties, min(3, len(all_properties)))  # Pick 3 random properties or fewer if there are less than 3
-    return render(request, 'homeverse/index.html', {'properties': properties})
+    return render(request, 'legacy_theme/index.html', {'properties': properties})
 
 def about(request):
     if request.method == "POST":
         pass    
-    return render(request, 'homeverse/about.html')
+    return render(request, 'legacy_theme/about.html')
 
 def service(request):
     if request.method == "POST":
         pass
-    return render(request, 'homeverse/services.html')
+    return render(request, 'legacy_theme/services.html')
 
 
 def contact(request):
     if request.method == "POST":
         # Handle form submission logic here
         pass
-    return render(request, 'homeverse/contact.html')
+    return render(request, 'legacy_theme/contact.html')
 
 def blog(request):
     if request.method == "POST":
@@ -208,7 +208,7 @@ def blog(request):
         pass
     # posts = BlogPost.objects.all()
     # return render(request, 'blog.html', {'posts': posts})
-    return render(request, 'homeverse/blog.html')
+    return render(request, 'legacy_theme/blog.html')
 
 def property_list(request):
     sale_or_rent = request.GET.get('sale_or_rent', 'rent') or 'rent'
