@@ -116,9 +116,9 @@
                 <span class="count">All {{ sale_or_rent|capfirst }} – ({{ total_count }})</span>
                 <span>
                     <span class="hint">Sort:</span>
-                    <a class="ch-chip {% if sort == 'true_cost' %}ch-chip-ok{% else %}ch-chip-grey{% endif %}" href="?sale_or_rent={{ sale_or_rent }}&sort=true_cost">Lowest true cost</a>
-                    <a class="ch-chip {% if sort == 'price' %}ch-chip-ok{% else %}ch-chip-grey{% endif %}" href="?sale_or_rent={{ sale_or_rent }}&sort=price">Price</a>
-                    <a class="ch-chip {% if sort == 'newest' %}ch-chip-ok{% else %}ch-chip-grey{% endif %}" href="?sale_or_rent={{ sale_or_rent }}&sort=newest">Newest</a>
+                    <a class="ch-chip {% if sort == 'true_cost' %}ch-chip-ok{% else %}ch-chip-grey{% endif %}" href="?{{ base_querystring|default:'' }}{% if base_querystring %}&{% endif %}sort=true_cost">Lowest true cost</a>
+                    <a class="ch-chip {% if sort == 'price' %}ch-chip-ok{% else %}ch-chip-grey{% endif %}" href="?{{ base_querystring|default:'' }}{% if base_querystring %}&{% endif %}sort=price">Price</a>
+                    <a class="ch-chip {% if sort == 'newest' %}ch-chip-ok{% else %}ch-chip-grey{% endif %}" href="?{{ base_querystring|default:'' }}{% if base_querystring %}&{% endif %}sort=newest">Newest</a>
                 </span>
             </div>
 
@@ -171,9 +171,9 @@
 
             {% if page_obj.has_other_pages %}
             <div class="ch-pager">
-                {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}&sort={{ sort }}&sale_or_rent={{ sale_or_rent }}">‹ Prev</a>{% endif %}
+                {% if page_obj.has_previous %}<a href="?{{ base_querystring|default:'' }}{% if base_querystring %}&{% endif %}page={{ page_obj.previous_page_number }}">‹ Prev</a>{% endif %}
                 <span class="current">Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
-                {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}&sort={{ sort }}&sale_or_rent={{ sale_or_rent }}">Next ›</a>{% endif %}
+                {% if page_obj.has_next %}<a href="?{{ base_querystring|default:'' }}{% if base_querystring %}&{% endif %}page={{ page_obj.next_page_number }}">Next ›</a>{% endif %}
             </div>
             {% endif %}
             {% else %}

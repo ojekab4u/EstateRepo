@@ -211,35 +211,43 @@ def blog(request):
     return render(request, 'homeverse/blog.html')
 
 def property_list(request):
-    sale_or_rent = request.GET.get('sale_or_rent', 'rent')  # Default to 'rent'
+    sale_or_rent = request.GET.get('sale_or_rent', 'rent') or 'rent'
     properties = Property.objects.filter(sale_or_rent=sale_or_rent)
-    query = request.GET.get('q', '')
+    query = request.GET.get('q') or ''
+    price_min = request.GET.get('price_min') or ''
+    price_max = request.GET.get('price_max') or ''
+    bedrooms = request.GET.get('bedrooms') or ''
+    bathrooms = request.GET.get('bathrooms') or ''
+    property_type = request.GET.get('property_type') or ''
+    max_true_cost = request.GET.get('max_true_cost') or ''
 
-    price_min = request.GET.get('price_min')
-    price_max = request.GET.get('price_max')
-    bedrooms = request.GET.get('bedrooms')
-    bathrooms = request.GET.get('bathrooms')
-    property_type = request.GET.get('property_type')
-    max_true_cost = request.GET.get('max_true_cost')
+    # Never let junk input (e.g. "None", "abc") become a DB filter — degrade
+    # gracefully by ignoring the parameter instead of 500-ing.
+    def _clean_number(value):
+        try:
+            Decimal(str(value))
+            return value
+        except (InvalidOperation, TypeError, ValueError):
+            return ''
 
     if query:
         properties = properties.filter(
             Q(title__icontains=query) | Q(city__icontains=query) | Q(address__icontains=query))
-    if price_min:
+    if _clean_number(price_min):
         properties = properties.filter(price__gte=price_min)
-    if price_max:
+    if _clean_number(price_max):
         properties = properties.filter(price__lte=price_max)
-    if bedrooms:
+    if bedrooms and bedrooms.isdigit():
         properties = properties.filter(bedrooms__gte=bedrooms)   # "2+" semantics
-    if bathrooms:
+    if bathrooms and bathrooms.isdigit():
         properties = properties.filter(bathrooms__gte=bathrooms)
-    if property_type:
+    if property_type in ('Apartment', 'House', 'Condo'):
         properties = properties.filter(property_type=property_type)
-    if max_true_cost:
+    if _clean_number(max_true_cost):
         properties = properties.filter(true_cost_yearly__lte=max_true_cost)
 
     # Sorting — true-cost sort is the product's signature (DB-cached, no API)
-    sort = request.GET.get('sort', '')
+    sort = request.GET.get('sort') or ''
     if sort == 'price':
         properties = properties.order_by('price')
     elif sort == 'newest':
@@ -251,6 +259,11 @@ def property_list(request):
     from django.core.paginator import Paginator
     paginator = Paginator(properties, 12)
     page_obj = paginator.get_page(request.GET.get('page'))
+
+    # Querystring for pagination/sort links that preserves active filters
+    params = request.GET.copy()
+    params.pop('page', None)
+    base_querystring = params.urlencode()
 
     context = {
         'page_obj': page_obj,
@@ -265,6 +278,7 @@ def property_list(request):
         'max_true_cost': max_true_cost,
         'sale_or_rent': sale_or_rent,
         'sort': sort,
+        'base_querystring': base_querystring,
     }
     return render(request, 'property_list.html', context)
 
