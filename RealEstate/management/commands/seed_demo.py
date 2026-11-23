@@ -112,6 +112,24 @@ def _generate_image(label, style, beds_text, price_text):
     return buf
 
 
+
+def _seed_customer_trips(customer, vehicles):
+    """Regular trips for the demo customer (idempotent)."""
+    from RealEstate.models import ProfilePlace, ProfileTrip
+    if ProfileTrip.objects.filter(user=customer).exists():
+        return
+    work_place, _ = ProfilePlace.objects.get_or_create(
+        user=customer, label="Work",
+        defaults={"address": "Ring Road, Ibadan", "latitude": 7.3650, "longitude": 3.8627})
+    market_place, _ = ProfilePlace.objects.get_or_create(
+        user=customer, label="Main Market",
+        defaults={"address": "Bodija Market, Ibadan", "latitude": 7.4173, "longitude": 3.9021})
+    ProfileTrip.objects.create(user=customer, place=work_place,
+                               vehicle=vehicles["Honda Civic"], return_trips_per_week=10)
+    ProfileTrip.objects.create(user=customer, place=market_place,
+                               vehicle=vehicles["Kia Rio"], return_trips_per_week=2)
+
+
 class Command(BaseCommand):
     help = "Seed demo users, vehicles, properties (with generated images) and sample estimates."
 
@@ -137,6 +155,11 @@ class Command(BaseCommand):
             recomputed = sum(1 for p in Property.objects.all() if p.compute_true_cost() is not None)
             self.stdout.write(f"Demo data already present — refreshed true-cost cache for "
                               f"{recomputed} property(ies) (use --force to re-seed everything).")
+            _customer = User.objects.filter(username="democust").first()
+            if _customer:
+                _vehicles = {v.name: v for v in Vehicle.objects.filter(user=_customer)}
+                if _vehicles:
+                    _seed_customer_trips(_customer, _vehicles)
             return
 
         self.stdout.write("Seeding demo data...")
@@ -204,6 +227,20 @@ class Command(BaseCommand):
 
         # Admin-managed national fuel prices (estimator + true-cost cache)
         # -> moved to the top of handle() so the skip path still refreshes them
+
+        # Regular trips for the demo customer (engine-ready)
+        from RealEstate.models import ProfilePlace, ProfileTrip
+        if not ProfileTrip.objects.filter(user=customer).exists():
+            work_place, _ = ProfilePlace.objects.get_or_create(
+                user=customer, label="Work",
+                defaults={"address": "Ring Road, Ibadan", "latitude": 7.3650, "longitude": 3.8627})
+            market_place, _ = ProfilePlace.objects.get_or_create(
+                user=customer, label="Main Market",
+                defaults={"address": "Bodija Market, Ibadan", "latitude": 7.4173, "longitude": 3.9021})
+            ProfileTrip.objects.create(user=customer, place=work_place,
+                                       vehicle=vehicles["Honda Civic"], return_trips_per_week=10)
+            ProfileTrip.objects.create(user=customer, place=market_place,
+                                       vehicle=vehicles["Kia Rio"], return_trips_per_week=2)
 
         # Sample saved estimates for the demo customer (numbers are plausible
         # pre-computed values — no network calls at seed time)

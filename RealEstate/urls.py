@@ -32,7 +32,10 @@ urlpatterns = [
 
     # Customer workspace
     path('my/estimates/', views.my_estimates, name='my_estimates'),
-    path('my/profile/', views.commute_profile, name='commute_profile'),
+    path('my/profile/', views.trip_list, name='commute_profile'),
+    path('my/trips/add/', views.trip_add, name='trip_add'),
+    path('my/trips/<int:pk>/edit/', views.trip_edit, name='trip_edit'),
+    path('my/trips/<int:pk>/delete/', views.trip_delete, name='trip_delete'),
 
     # Vehicles (customers)
     path('addvehicle/', views.add_vehicle, name='add_vehicle'),

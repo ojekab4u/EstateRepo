@@ -10,14 +10,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/comfyhome.css' %}">
     <style>
-        .ch-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:22px;padding:14px 28px 40px;align-items:start}
+        .ch-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:22px;padding:14px 28px 40px;align-items:start}
         @media (max-width:960px){.ch-grid{grid-template-columns:1fr}}
         .ch-panel{background:#fff;border-radius:8px;box-shadow:var(--ch-shadow);padding:20px;margin-bottom:14px}
         .ch-panel b.t{font-size:14px;color:var(--ch-navy)}
-        .vrow{display:flex;gap:10px;align-items:flex-end;background:var(--ch-cultured);border-radius:6px;padding:12px;margin:10px 0;flex-wrap:wrap}
-        .vrow .grow{flex:1.4;min-width:180px}
-        .vrow .w{width:96px}
-        .vrow .sel{flex:1;min-width:160px}
         .rrow{display:grid;gap:10px;padding:10px 14px;border-bottom:1px solid var(--ch-line);font-size:12.5px;align-items:center}
         .rrow.head{background:var(--ch-navy);color:#fff;font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;border-radius:6px 6px 0 0}
         .rrow.total{background:#F0F7FF;font-weight:800;border-bottom:none;border-radius:0 0 6px 6px}
@@ -28,9 +24,8 @@
         table.results td,table.results th{padding:8px 10px;border-bottom:1px solid var(--ch-line);text-align:left}
         table.results th{background:var(--ch-navy);color:#fff;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em}
         table.results tr.total td{background:#F0F7FF;font-weight:800}
-        .pill{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:800;padding:4px 10px;border-radius:4px}
-        .pill.grey{background:#EDF1F3;color:var(--ch-cadet)}
-        .pill.ok{background:var(--ch-ok-bg);color:var(--ch-ok)}
+        .triprow td{vertical-align:top}
+        .skipped{color:var(--ch-cadet);font-style:italic}
     </style>
 </head>
 <body>
@@ -39,180 +34,123 @@
     <div class="ch-band">
         <h1>Cost Estimation</h1>
         <div class="crumb">
-            for <b>{{ property.title }}</b>, {{ property.city }} · rent ₦{{ property.price|intcomma }}/yr
+            <b>{{ property.title }}</b>, {{ property.city }} · rent ₦{{ property.price|intcomma }}/yr
             · ‹ <a href="{% url 'property_detail' property.pk %}" style="color:var(--ch-coral)">back to property</a>
         </div>
     </div>
 
     <div class="ch-grid">
-        <!-- inputs -->
+        <!-- left: inputs from profile -->
         <div>
-            <form method="post">
+            <div class="ch-panel">
+                <b class="t">Your trips</b>
+                {% if has_trips %}
+                <div class="hint" style="margin:6px 0 10px">from your commute profile — edit there, not here</div>
+                <table class="results">
+                    <tr><th>Place</th><th>Vehicle</th><th>Visits/wk</th></tr>
+                    {% for t in trips %}
+                    <tr class="triprow">
+                        <td><b>{{ t.place.label }}</b><br><small style="color:var(--ch-cadet)">{{ t.place.address }}</small></td>
+                        <td>{{ t.vehicle.name }}<br><small style="color:var(--ch-cadet)">{{ t.vehicle.fuel_consumption_rate }} L/km</small></td>
+                        <td>{{ t.return_trips_per_week }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                <div style="margin-top:12px"><a href="{% url 'commute_profile' %}" class="ch-btn ch-btn-ghost ch-btn-sm">Edit trips</a></div>
+                {% else %}
+                <div class="hint" style="margin-top:8px">
+                    You have no regular trips yet. Add the places your household visits
+                    (each with its vehicle and weekly visits) — then estimating any property is one tap.
+                </div>
+                <div style="margin-top:12px"><a href="{% url 'trip_add' %}" class="ch-btn ch-btn-coral ch-btn-sm">Add your first trip</a></div>
+                {% endif %}
+            </div>
+
+            {% if has_trips %}
+            <form method="post" class="ch-panel">
                 {% csrf_token %}
-
-                <div class="ch-panel">
-                    <b class="t">1 · Your fuel price</b>
-                    <div class="ch-field" style="margin:10px 0 0">
-                        <label for="fuel">Petrol (₦/litre)</label>
-                        <input id="fuel" name="current_fuel_price" type="number" step="0.01" min="0"
-                               value="{{ default_fuel_price }}" placeholder="e.g. 998">
-                        <div class="hint">prefilled from your profile · leave as-is if current</div>
-                    </div>
+                <b class="t">Fuel price for this estimate</b>
+                <div class="ch-field" style="margin:10px 0 0;max-width:280px">
+                    <input name="fuel_price" type="number" step="0.01" min="0" value="{{ default_fuel_price }}" placeholder="e.g. 998 (₦/litre)">
+                    <div class="hint">prefilled from your profile</div>
                 </div>
-
-                <div class="ch-panel">
-                    <b class="t">2 · Vehicles &amp; destinations</b>
-                    <div class="hint" style="margin:6px 0 2px">
-                        Estimate for the whole household — one row per vehicle (yours, your spouse's, another member's).
-                    </div>
-                    <div class="ch-field" style="margin:8px 0 0;max-width:180px">
-                        <label for="num_cars">How many vehicles?</label>
-                        <input id="num_cars" name="num_cars" type="number" value="1" min="1" max="5" required>
-                    </div>
-                    <div id="vehicle-fields"></div>
-                    {% if not vehicles %}
-                    <div class="ch-note-grey">You have no vehicles yet —
-                        <a href="{% url 'add_vehicle' %}" style="color:var(--ch-coral);font-weight:800">add one now</a>
-                        (name + fuel consumption rate), or the estimate will use a typical car.
-                    </div>
-                    {% endif %}
-                </div>
-
-                <div class="ch-panel" style="opacity:.75">
-                    <b class="t">3 · Power &amp; other bills</b>
-                    <div class="hint" style="margin-top:6px">Electricity, service charges and other recurring costs — <b>coming soon</b>. This panel will read from your profile, same as fuel.</div>
-                </div>
-
-                <button type="submit" class="ch-btn ch-btn-coral" style="width:100%;justify-content:center">Estimate my true cost</button>
+                <button type="submit" class="ch-btn ch-btn-coral" style="width:100%;justify-content:center;margin-top:14px">Estimate my cost</button>
             </form>
+            {% endif %}
+
+            <div class="ch-panel" style="opacity:.75">
+                <b class="t">Power and other bills</b>
+                <div class="hint" style="margin-top:6px">Electricity, service charges and other recurring costs — coming soon.
+                    They will read from your profile, same as fuel.</div>
+            </div>
         </div>
 
-        <!-- results -->
+        <!-- right: results -->
         <aside>
-            {% if vehicle_summaries %}
+            {% if result %}
             <div class="ch-panel">
-                <b class="t">Your result — this home, your life</b>
+                <b class="t">Your result — this home, your trips</b>
+                <div class="hint" style="margin-top:4px">fuel price used: ₦{{ fuel_price|floatformat:2 }}/litre</div>
 
-                <div class="rrow head" style="margin-top:12px;grid-template-columns:1.3fr 1fr 1fr 1fr">
-                    <span>Vehicle</span><span>Weekly</span><span>Monthly</span><span>Yearly (₦)</span>
+                <div class="rrow head" style="margin-top:12px;grid-template-columns:1.2fr 1fr 1fr 1fr">
+                    <span>Trip</span><span>Round-trip km</span><span>Per year</span><span>Cost/yr (₦)</span>
                 </div>
-                {% for v in vehicle_summaries %}
-                <div class="rrow" style="grid-template-columns:1.3fr 1fr 1fr 1fr">
-                    <span>{{ v.vehicle_name }}</span>
-                    <span class="num">₦{{ v.weekly_estimate|floatformat:0|intcomma }}</span>
-                    <span class="num">₦{{ v.monthly_estimate|floatformat:0|intcomma }}</span>
-                    <span class="num">₦{{ v.yearly_estimate|floatformat:0|intcomma }}</span>
-                </div>
+                {% for t in result.trips %}
+                    {% if t.skipped %}
+                    <div class="rrow skipped" style="grid-template-columns:1.2fr 1fr 1fr 1fr">
+                        <span>{{ t.label }}</span><span colspan="3">{{ t.reason }}</span>
+                    </div>
+                    {% else %}
+                    <div class="rrow" style="grid-template-columns:1.2fr 1fr 1fr 1fr">
+                        <span>{{ t.label }}<br><small style="color:var(--ch-cadet)">{{ t.vehicle }}</small></span>
+                        <span class="num">{{ t.km_roundtrip|floatformat:1 }}</span>
+                        <span class="num">{{ t.annual_km|floatformat:0 }} km</span>
+                        <span class="num">₦{{ t.yearly_cost|floatformat:0|intcomma }}</span>
+                    </div>
+                    {% endif %}
                 {% endfor %}
-                <div class="rrow total" style="grid-template-columns:1.3fr 1fr 1fr 1fr">
-                    <span>Transport total</span>
-                    <span class="num">₦{{ total_transportation_cost_weekly|floatformat:0|intcomma }}</span>
-                    <span class="num">₦{{ total_transportation_cost_monthly|floatformat:0|intcomma }}</span>
-                    <span class="num">₦{{ total_transportation_cost_yearly|floatformat:0|intcomma }}</span>
+                <div class="rrow total" style="grid-template-columns:1.2fr 1fr 1fr 1fr">
+                    <span>Transport total</span><span></span>
+                    <span></span>
+                    <span class="num">₦{{ total_transport|floatformat:0|intcomma }}</span>
                 </div>
 
                 <table class="results" style="margin-top:18px">
                     <tr><th>Period</th><th>Rent</th><th>Transport</th><th>True cost</th></tr>
-                    <tr>
-                        <td>Weekly</td>
+                    <tr><td>Weekly</td>
                         <td class="num">₦{{ rent_weekly|floatformat:0|intcomma }}</td>
-                        <td class="num">₦{{ total_transportation_cost_weekly|floatformat:0|intcomma }}</td>
-                        <td class="num"><b>₦{{ effective_cost_weekly|floatformat:0|intcomma }}</b></td>
-                    </tr>
-                    <tr>
-                        <td>Monthly</td>
+                        <td class="num">₦{{ total_transport_weekly|floatformat:0|intcomma }}</td>
+                        <td class="num"><b>₦{{ effective_weekly|floatformat:0|intcomma }}</b></td></tr>
+                    <tr><td>Monthly</td>
                         <td class="num">₦{{ rent_monthly|floatformat:0|intcomma }}</td>
-                        <td class="num">₦{{ total_transportation_cost_monthly|floatformat:0|intcomma }}</td>
-                        <td class="num"><b>₦{{ effective_cost_monthly|floatformat:0|intcomma }}</b></td>
-                    </tr>
-                    <tr class="total">
-                        <td>Yearly</td>
+                        <td class="num">₦{{ total_transport_monthly|floatformat:0|intcomma }}</td>
+                        <td class="num"><b>₦{{ effective_monthly|floatformat:0|intcomma }}</b></td></tr>
+                    <tr class="total"><td>Yearly</td>
                         <td class="num">₦{{ rent_yearly|floatformat:0|intcomma }}</td>
-                        <td class="num">₦{{ total_transportation_cost_yearly|floatformat:0|intcomma }}</td>
-                        <td class="num">₦{{ effective_cost_yearly|floatformat:0|intcomma }}</td>
-                    </tr>
+                        <td class="num">₦{{ total_transport|floatformat:0|intcomma }}</td>
+                        <td class="num">₦{{ effective_yearly|floatformat:0|intcomma }}</td></tr>
                 </table>
 
                 <div class="ch-note-ok">
-                    This estimate was saved to <a href="{% url 'my_estimates' %}" style="color:inherit">your saved estimates</a> —
-                    it's <b>yours</b>: computed from your vehicles, trips and fuel price.
+                    Saved to <a href="{% url 'my_estimates' %}" style="color:inherit">your saved estimates</a>.
+                    It is computed from your trips as they are today — editing your profile later will not change this saved number.
                 </div>
-                <div class="ch-note-grey">
-                    Next: compare this home against another with the same profile — one number per home, your life as the constant.
-                </div>
+                {% if result.skipped %}
+                <div class="ch-note-grey">{{ result.skipped }} trip(s) were skipped — their locations could not be resolved.
+                    Check the addresses in your profile.</div>
+                {% endif %}
             </div>
             {% else %}
             <div class="ch-panel">
                 <b class="t">Your result appears here</b>
                 <div class="hint" style="margin-top:8px">
-                    Fill in your vehicles &amp; destinations on the left, then estimate.
-                    {% if has_profile %}Your saved profile ({{ profile_work_location|default:"work" }}) prefills the form.{% else %}
-                    Tip: <a href="{% url 'commute_profile' %}" style="color:var(--ch-coral);font-weight:800">save your commute profile</a> once — then every property's estimate is one tap.{% endif %}
+                    {% if has_trips %}Enter the fuel price and estimate.{% else %}Add a regular trip first, then come back — estimating takes one tap after that.{% endif %}
                 </div>
-                {% if property.latitude %}
-                <div class="pill ok" style="margin-top:12px">property located ({{ property.latitude|floatformat:3 }}, {{ property.longitude|floatformat:3 }})</div>
-                {% endif %}
             </div>
             {% endif %}
         </aside>
     </div>
 
     {% include "partials/footer.html" %}
-
-    <script>
-        // Dynamic vehicle rows — field names match the server contract:
-        // num_cars, vehicle_{i}, work_location_{i}, work_trips_per_week_{i},
-        // location_name_{i}_{j}, location_address_{i}_{j}, location_trips_per_week_{i}_{j}
-        const USER_VEHICLES = [
-            {% for v in vehicles %}{ id: "{{ v.pk }}", name: "{{ v.name|escapejs }} ({{ v.fuel_consumption_rate }} L/km)" },{% endfor %}
-        ];
-        const DEFAULT_WORK = "{{ profile_work_location|escapejs }}";
-        const DEFAULT_TRIPS = "{{ profile_trips }}";
-
-        function vehicleRow(i) {
-            const options = USER_VEHICLES.length
-                ? USER_VEHICLES.map(v => `<option value="${v.id}">${v.name}</option>`).join("")
-                : `<option value="">— no vehicle saved —</option>`;
-            return `
-            <div class="vrow">
-                <div class="sel"><div class="ch-field" style="margin:0">
-                    <label>Vehicle ${i} — you / spouse / member</label>
-                    <select name="vehicle_${i}" required>${options}</select>
-                </div></div>
-                <div class="grow"><div class="ch-field" style="margin:0">
-                    <label>Main destination</label>
-                    <input name="work_location_${i}" value="${DEFAULT_WORK}" placeholder="work address" required>
-                </div></div>
-                <div class="w"><div class="ch-field" style="margin:0">
-                    <label>Trips/wk</label>
-                    <input name="work_trips_per_week_${i}" type="number" min="1" value="${DEFAULT_TRIPS}" required>
-                </div></div>
-                <div id="other-${i}"></div>
-                <button type="button" class="ch-btn ch-btn-ghost ch-btn-sm" onclick="addOther(${i})">+ other stop</button>
-            </div>`;
-        }
-
-        function updateVehicleFields() {
-            const n = Math.max(1, Math.min(5, parseInt(document.getElementById("num_cars").value || "1")));
-            document.getElementById("vehicle-fields").innerHTML = Array.from({length: n}, (_, k) => vehicleRow(k + 1)).join("");
-        }
-        function addOther(i) {
-            const box = document.getElementById("other-" + i);
-            const j = box.children.length;
-            box.insertAdjacentHTML("beforeend", `
-                <div class="vrow" style="background:#fff">
-                    <div class="grow"><div class="ch-field" style="margin:0">
-                        <label>Stop name</label><input name="location_name_${i}_${j}" placeholder="e.g. Market, Church" required>
-                    </div></div>
-                    <div class="grow"><div class="ch-field" style="margin:0">
-                        <label>Address</label><input name="location_address_${i}_${j}" placeholder="address" required>
-                    </div></div>
-                    <div class="w"><div class="ch-field" style="margin:0">
-                        <label>Trips/wk</label><input name="location_trips_per_week_${i}_${j}" type="number" min="1" value="1" required>
-                    </div></div>
-                </div>`);
-        }
-        updateVehicleFields();
-    </script>
 </body>
 </html>

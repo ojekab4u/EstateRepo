@@ -1,0 +1,27 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remove trip — ComfyHome</title>
+    <link rel="icon" type="image/png" href="{% static 'images/fav.png' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/comfyhome.css' %}">
+</head>
+<body>
+    {% include "partials/nav.html" %}
+    <div class="ch-panel" style="max-width:520px;margin:40px auto;padding:24px">
+        <h2 style="font-size:17px;color:var(--ch-navy)">Remove the trip to "{{ trip.place.label }}"?</h2>
+        <div class="hint" style="margin:10px 0">
+            It will no longer be part of your estimates. Saved estimates keep the numbers they were calculated with.
+        </div>
+        <form method="post" style="display:flex;gap:8px;margin-top:14px">
+            {% csrf_token %}
+            <a href="{% url 'commute_profile' %}" class="ch-btn ch-btn-ghost ch-btn-sm">Cancel</a>
+            <button type="submit" class="ch-btn ch-btn-coral ch-btn-sm">Yes, remove it</button>
+        </form>
+    </div>
+    {% include "partials/footer.html" %}
+</body>
+</html>

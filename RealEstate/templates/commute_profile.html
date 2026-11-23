@@ -15,11 +15,14 @@
         .ch-sidenav{background:#fff;border-radius:8px;box-shadow:var(--ch-shadow);padding:10px}
         .ch-sidenav a{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;border-radius:6px;font-size:13px;font-weight:700;color:var(--ch-cadet);text-decoration:none;margin-bottom:2px}
         .ch-sidenav a.on{background:var(--ch-cultured);color:var(--ch-navy)}
-        .ch-sidenav a:hover{color:var(--ch-navy)}
-        .ch-panel{background:#fff;border-radius:8px;box-shadow:var(--ch-shadow);padding:24px}
-        .ch-note{border-left:4px solid var(--ch-coral);background:#FEF3F1;padding:10px 14px;border-radius:0 6px 6px 0;font-size:12px;color:var(--ch-coral-dark);margin-bottom:16px}
-        .ch-note-ok{border-left:4px solid var(--ch-ok);background:var(--ch-ok-bg);padding:10px 14px;border-radius:0 6px 6px 0;font-size:12px;color:#067A53;margin-bottom:16px}
-        .quick{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+        .ch-panel{background:#fff;border-radius:8px;box-shadow:var(--ch-shadow);padding:22px}
+        .ch-note{border-left:4px solid var(--ch-coral);background:#FEF3F1;padding:10px 14px;border-radius:0 6px 6px 0;font-size:12px;color:var(--ch-coral-dark);margin-bottom:14px}
+        .ch-note-ok{border-left:4px solid var(--ch-ok);background:var(--ch-ok-bg);padding:10px 14px;border-radius:0 6px 6px 0;font-size:12px;color:#067A53;margin-bottom:14px}
+        table.trips{width:100%;border-collapse:collapse;font-size:13px}
+        table.trips th{background:var(--ch-navy);color:#fff;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;padding:9px 12px;text-align:left}
+        table.trips td{padding:11px 12px;border-bottom:1px solid var(--ch-line);vertical-align:top}
+        table.trips .lbl{font-weight:800;color:var(--ch-navy)}
+        .fuelrow{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
     </style>
 </head>
 <body>
@@ -27,18 +30,16 @@
 
     <div class="ch-band">
         <h1>My Commute Profile</h1>
-        <div class="crumb">Your commute details — vehicles, trips and fuel price. Save once, then estimate any property in one tap.</div>
+        <div class="crumb">Your regular trips — where you go, with which vehicle, how often. Estimates use exactly these.</div>
     </div>
 
     <div class="ch-layout">
-        <!-- side navigation -->
         <aside class="ch-sidenav">
-            <a class="on" href="{% url 'commute_profile' %}">Profile <span>•</span></a>
+            <a class="on" href="{% url 'commute_profile' %}">Regular trips <span>{{ trips|length }}</span></a>
             <a href="{% url 'vehicle_list' %}">Vehicles <span>{{ vehicle_count }}</span></a>
-            <a href="{% url 'my_estimates' %}">Saved estimates <span>—</span></a>
+            <a href="{% url 'my_estimates' %}">Saved estimates</a>
         </aside>
 
-        <!-- main -->
         <main>
             {% if messages %}
                 {% for message in messages %}
@@ -46,41 +47,55 @@
                 {% endfor %}
             {% endif %}
 
-            <div class="ch-panel">
-                <form method="post">
+            <!-- fuel price -->
+            <div class="ch-panel" style="margin-bottom:16px">
+                <b style="font-size:14px;color:var(--ch-navy)">Fuel price</b>
+                <form method="post" class="fuelrow" style="margin-top:10px">
                     {% csrf_token %}
-                    <div class="ch-field">
-                        <label for="id_fuel">Current fuel price (₦/litre)</label>
-                        <input id="id_fuel" name="fuel_price" type="number" step="0.01" min="0"
-                               value="{{ profile.fuel_price|default:'' }}" placeholder="e.g. 998">
-                        <div class="hint">Leave blank and we use the national average ({{ latest_petrol|default:'not set yet' }})</div>
+                    <input type="hidden" name="action" value="fuel">
+                    <div class="ch-field" style="margin:0;max-width:260px">
+                        <input name="fuel_price" type="number" step="0.01" min="0" value="{{ profile.fuel_price|default:'' }}" placeholder="e.g. 998 (₦/litre)">
+                        <div class="hint">Leave blank to use the national average ({{ latest_petrol|default:'not set yet' }})</div>
                     </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-                        <div class="ch-field">
-                            <label for="id_work">Main destination</label>
-                            <input id="id_work" name="work_location" value="{{ profile.work_location }}"
-                                   placeholder="e.g. Ring Road, Ibadan">
-                            <div class="hint">Where you go most days — work, school or business</div>
-                        </div>
-                        <div class="ch-field">
-                            <label for="id_trips">Trips to it per week</label>
-                            <input id="id_trips" name="work_trips_per_week" type="number" min="1"
-                                   value="{{ profile.work_trips_per_week|default:'' }}" placeholder="e.g. 10 (there and back, 2/day)">
-                        </div>
-                    </div>
-
-                    <div class="quick">
-                        <a href="{% url 'vehicle_list' %}" class="ch-btn ch-btn-ghost ch-btn-sm">
-                            Vehicles ({{ vehicle_count }})
-                        </a>
-                        <a href="{% url 'my_estimates' %}" class="ch-btn ch-btn-ghost ch-btn-sm">Saved estimates</a>
-                        <button type="submit" class="ch-btn ch-btn-coral" style="margin-left:auto">Save profile</button>
-                    </div>
+                    <button type="submit" class="ch-btn ch-btn-ghost ch-btn-sm">Save fuel price</button>
                 </form>
-                <div class="hint" style="margin-top:16px">
-                    Every estimate uses these details. Upcoming additions — electricity bill, service charges —
-                    will live in this same profile.
+            </div>
+
+            <!-- trips -->
+            <div class="ch-panel">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:10px">
+                    <b style="font-size:14px;color:var(--ch-navy)">Regular trips</b>
+                    <a href="{% url 'trip_add' %}" class="ch-btn ch-btn-coral ch-btn-sm">+ Add a trip</a>
                 </div>
+
+                {% if trips %}
+                <div style="overflow-x:auto">
+                <table class="trips">
+                    <tr><th>Place</th><th>Address</th><th>Vehicle</th><th>Visits/wk</th><th></th></tr>
+                    {% for t in trips %}
+                    <tr>
+                        <td class="lbl">{{ t.place.label }}</td>
+                        <td style="color:var(--ch-cadet);font-size:12px">{{ t.place.address }}</td>
+                        <td>{{ t.vehicle.name }}<br><small style="color:var(--ch-cadet)">{{ t.vehicle.fuel_consumption_rate }} L/km</small></td>
+                        <td>{{ t.return_trips_per_week }}</td>
+                        <td style="display:flex;gap:6px">
+                            <a href="{% url 'trip_edit' t.pk %}" class="ch-btn ch-btn-ghost ch-btn-sm">Edit</a>
+                            <a href="{% url 'trip_delete' t.pk %}" class="ch-btn ch-btn-ghost ch-btn-sm" style="color:var(--ch-trap);border-color:var(--ch-trap)">Remove</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                </div>
+                <div class="hint" style="margin-top:10px">
+                    Same place twice with different vehicles means household members share the journeys — the estimate adds both.
+                </div>
+                {% else %}
+                <div class="ch-empty">
+                    No regular trips yet. Add the places your household visits —<br>
+                    work, market, school, worship — each with its vehicle and weekly visits.<br><br>
+                    <a href="{% url 'trip_add' %}" class="ch-btn ch-btn-coral ch-btn-sm">Add your first trip</a>
+                </div>
+                {% endif %}
             </div>
         </main>
     </div>

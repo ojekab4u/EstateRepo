@@ -14,7 +14,8 @@ from django.test import TestCase
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 
-from .models import User, Property, Vehicle, HistoricalData, EstimateProfile
+from .models import (User, Property, Vehicle, HistoricalData, EstimateProfile,
+                     ProfilePlace, ProfileTrip)
 
 
 def _tiny_image():
@@ -107,31 +108,29 @@ class RoleGuardTests(BaseTest):
 class SavedEstimatesTests(BaseTest):
     def test_estimator_persists_historical_data(self):
         """The estimator must save one HistoricalData row per vehicle."""
+        place = ProfilePlace.objects.create(
+            user=self.customer, label="Work", address="Ring Road, Ibadan")
+        ProfileTrip.objects.create(
+            user=self.customer, place=place, vehicle=self.vehicle,
+            return_trips_per_week=10)
         self.client.login(username="cust1", password="Passw0rd!23")
-        with patch("RealEstate.views.geo.geocode",
-                   return_value={"lat": 7.39, "lng": 3.91, "display": "Test"}), \
-             patch("RealEstate.views.geo.route_distance_km", return_value=5.0):
+        with patch("RealEstate.views.geo.route_distance_km", return_value=5.0):
             r = self.client.post(
                 reverse("cost_estimation_detail", args=[self.property_.pk]),
-                {
-                    "num_cars": "1",
-                    "vehicle_1": str(self.vehicle.pk),
-                    "work_location_1": "Ring Road, Ibadan",
-                    "work_trips_per_week_1": "10",
-                    "current_fuel_price": "998",
-                })
+                {"fuel_price": "998"})
         self.assertEqual(r.status_code, 200)
         rows = HistoricalData.objects.filter(user=self.customer, property=self.property_)
         self.assertEqual(rows.count(), 1)
         row = rows.first()
         self.assertEqual(row.vehicle_name, "Honda Civic")
-        self.assertEqual(row.work_location, "Ring Road, Ibadan")
+        self.assertEqual(row.work_location, "1 regular trips")
         self.assertEqual(row.transportation_cost, Decimal("352892.80"))
         expected_total = Decimal(str(self.property_.price)) + row.transportation_cost
         self.assertEqual(row.total_effective_cost, expected_total)
-        profile = json.loads(row.other_locations)
-        self.assertEqual(profile["fuel_price"], "998")
-        self.assertEqual(profile["work_trips_per_week"], 10)
+        snapshot = json.loads(row.other_locations)
+        self.assertEqual(snapshot["fuel_price"], "998")
+        self.assertEqual(len(snapshot["trips"]), 1)
+        self.assertEqual(snapshot["trips"][0]["label"], "Work")
 
     def test_my_estimates_lists_saved_rows(self):
         HistoricalData.objects.create(
@@ -191,16 +190,16 @@ class PricingEngineTests(BaseTest):
         from .models import FuelPrice
         from django.utils import timezone as tz
         FuelPrice.objects.create(fuel_type="petrol", price_per_litre=Decimal("998"), effective_date=tz.now().date())
+        place = ProfilePlace.objects.create(
+            user=self.customer, label="Work", address="Ring Road, Ibadan")
+        ProfileTrip.objects.create(
+            user=self.customer, place=place, vehicle=self.vehicle,
+            return_trips_per_week=10)
         self.client.login(username="cust1", password="Passw0rd!23")
-        with patch("RealEstate.views.geo.geocode",
-                   return_value={"lat": 7.39, "lng": 3.91, "display": "T"}), \
-             patch("RealEstate.views.geo.route_distance_km", return_value=5.0):
-            r = self.client.post(
-                reverse("cost_estimation_detail", args=[self.property_.pk]),
-                {"num_cars": "1", "vehicle_1": str(self.vehicle.pk),
-                 "work_location_1": "Ring Road, Ibadan", "work_trips_per_week_1": "10"})
+        with patch("RealEstate.views.geo.route_distance_km", return_value=5.0):
+            r = self.client.post(reverse("cost_estimation_detail", args=[self.property_.pk]), {})
         self.assertEqual(r.status_code, 200)
-        # ₦998/L applied: 5200 km × 0.068 × 998 = ₦352,892.80/yr
+        # national price ₦998 applied: 5200 km × 0.068 × 998 = ₦352,892.80/yr
         row = HistoricalData.objects.filter(user=self.customer).latest("id")
         self.assertEqual(row.transportation_cost, Decimal("352892.80"))
 
@@ -250,33 +249,46 @@ class ProfileFlowTests(BaseTest):
         self.assertEqual(r.status_code, 302)
         self.assertIn("/login", r.url)
 
-    def test_profile_save_and_reuse(self):
-        self.client.login(username="cust1", password="Passw0rd!23")
-        r = self.client.post(reverse("commute_profile"), {
-            "fuel_price": "998", "work_location": "Ring Road, Ibadan",
-            "work_trips_per_week": "10"})
-        self.assertEqual(r.status_code, 302)  # save-and-redirect
-        profile = EstimateProfile.objects.get(user=self.customer)
-        self.assertEqual(profile.work_location, "Ring Road, Ibadan")
-        self.assertEqual(profile.fuel_price, Decimal("998"))
+    def _make_trip(self, vehicle=None, label="Work", address="Ring Road, Ibadan", trips=10):
+        vehicle = vehicle or self.vehicle
+        place = ProfilePlace.objects.create(
+            user=self.customer, label=label, address=address)
+        return ProfileTrip.objects.create(
+            user=self.customer, place=place, vehicle=vehicle,
+            return_trips_per_week=trips)
 
-        # Estimator GET prefills from the profile
-        r = self.client.get(reverse("cost_estimation_detail", args=[self.property_.pk]))
-        self.assertEqual(r.status_code, 200)
-        self.assertContains(r, "Ring Road, Ibadan")
-
-    def test_estimator_fuel_falls_back_to_profile(self):
-        EstimateProfile.objects.create(
-            user=self.customer, fuel_price=Decimal("998"),
-            work_location="Ring Road, Ibadan", work_trips_per_week=10)
+    def test_trip_add_creates_place_and_trip(self):
         self.client.login(username="cust1", password="Passw0rd!23")
         with patch("RealEstate.views.geo.geocode",
-                   return_value={"lat": 7.39, "lng": 3.91, "display": "T"}), \
-             patch("RealEstate.views.geo.route_distance_km", return_value=5.0):
-            r = self.client.post(
-                reverse("cost_estimation_detail", args=[self.property_.pk]),
-                {"num_cars": "1", "vehicle_1": str(self.vehicle.pk),
-                 "work_location_1": "Ring Road, Ibadan", "work_trips_per_week_1": "10"})
+                   return_value={"lat": 7.36, "lng": 3.86, "display": "T"}):
+            r = self.client.post(reverse("trip_add"), {
+                "label": "Work", "address": "Ring Road, Ibadan",
+                "vehicle": str(self.vehicle.pk), "return_trips_per_week": "10"})
+        self.assertEqual(r.status_code, 302)
+        self.assertTrue(ProfileTrip.objects.filter(user=self.customer).exists())
+        place = ProfilePlace.objects.get(user=self.customer, label="Work")
+        self.assertEqual(place.latitude, 7.36)  # geocoded once at trip creation
+
+    def test_fuel_price_saved_via_profile_hub(self):
+        self._make_trip()
+        self.client.login(username="cust1", password="Passw0rd!23")
+        r = self.client.post(reverse("commute_profile"),
+                             {"action": "fuel", "fuel_price": "998"})
+        self.assertEqual(r.status_code, 302)
+        profile = EstimateProfile.objects.get(user=self.customer)
+        self.assertEqual(profile.fuel_price, Decimal("998"))
+
+        # Estimator GET prefills fuel from the profile
+        r = self.client.get(reverse("cost_estimation_detail", args=[self.property_.pk]))
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, 'value="998.00"')
+
+    def test_estimator_fuel_falls_back_to_profile(self):
+        EstimateProfile.objects.create(user=self.customer, fuel_price=Decimal("998"))
+        self._make_trip()
+        self.client.login(username="cust1", password="Passw0rd!23")
+        with patch("RealEstate.views.geo.route_distance_km", return_value=5.0):
+            r = self.client.post(reverse("cost_estimation_detail", args=[self.property_.pk]), {})
         self.assertEqual(r.status_code, 200)
         row = HistoricalData.objects.filter(user=self.customer).latest("id")
         self.assertEqual(row.transportation_cost, Decimal("352892.80"))  # 5200 km × 0.068 × 998

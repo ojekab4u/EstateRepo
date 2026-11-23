@@ -1,0 +1,77 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if editing %}Edit trip{% else %}Add a trip{% endif %} — ComfyHome</title>
+    <link rel="icon" type="image/png" href="{% static 'images/fav.png' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/comfyhome.css' %}">
+    <style>
+        .ch-panel{background:#fff;border-radius:8px;box-shadow:var(--ch-shadow);padding:24px;max-width:600px;margin:16px auto 40px}
+        .ch-note{border-left:4px solid var(--ch-coral);background:#FEF3F1;padding:10px 14px;border-radius:0 6px 6px 0;font-size:12px;color:var(--ch-coral-dark);margin-bottom:16px}
+    </style>
+</head>
+<body>
+    {% include "partials/nav.html" %}
+
+    <div class="ch-band">
+        <h1>{% if editing %}Edit trip{% else %}Add a regular trip{% endif %}</h1>
+        <div class="crumb">a place you go often, the vehicle used for it, and how often the household goes there and back weekly</div>
+    </div>
+
+    <div class="ch-panel">
+        {% if messages %}{% for message in messages %}<div class="ch-note">{{ message }}</div>{% endfor %}{% endif %}
+
+        {% if not vehicles %}
+        <div class="ch-note">You need at least one vehicle first —
+            <a href="{% url 'add_vehicle' %}" style="color:inherit;font-weight:800">add one now</a>.</div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="ch-field">
+                <label for="id_label">Place name</label>
+                <input id="id_label" name="label" value="{% if editing %}{{ trip.place.label }}{% endif %}"
+                       required maxlength="100" placeholder="e.g. Work, Main Market, Church" list="myplaces">
+                <datalist id="myplaces">
+                    {% for p in places %}<option value="{{ p.label }}"></option>{% endfor %}
+                </datalist>
+            </div>
+            <div class="ch-field">
+                <label for="id_address">Address</label>
+                <input id="id_address" name="address" value="{% if editing %}{{ trip.place.address }}{% endif %}"
+                       required placeholder="e.g. Ring Road Commercial Hub, Ibadan">
+                <div class="hint">We locate it once (free mapping service) and reuse it for every estimate</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div class="ch-field">
+                    <label for="id_vehicle">Vehicle for this trip</label>
+                    <select id="id_vehicle" name="vehicle" required>
+                        {% for v in vehicles %}
+                        <option value="{{ v.pk }}" {% if editing and trip.vehicle.pk == v.pk %}selected{% endif %}>
+                            {{ v.name }} ({{ v.fuel_consumption_rate }} L/km)</option>
+                        {% endfor %}
+                    </select>
+                    <div class="hint">different vehicle for a different place? add another trip</div>
+                </div>
+                <div class="ch-field">
+                    <label for="id_trips">Return trips per week</label>
+                    <input id="id_trips" name="return_trips_per_week" type="number" min="1"
+                           value="{% if editing %}{{ trip.return_trips_per_week }}{% else %}10{% endif %}" required>
+                    <div class="hint">one visit = there and back (e.g. daily work = 10)</div>
+                </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:18px">
+                <a href="{% url 'commute_profile' %}" class="ch-btn ch-btn-ghost ch-btn-sm">Cancel</a>
+                <button type="submit" class="ch-btn ch-btn-coral" {% if not vehicles %}disabled{% endif %}>
+                    {% if editing %}Save changes{% else %}Save trip{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+
+    {% include "partials/footer.html" %}
+</body>
+</html>

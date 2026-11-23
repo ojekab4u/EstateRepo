@@ -42,20 +42,26 @@
                 {% for error in form.name.errors %}<div class="hint" style="color:var(--ch-trap)">{{ error }}</div>{% endfor %}
             </div>
             <div class="ch-field">
-                <label for="id_rate">Fuel consumption (litres per km)</label>
-                <input id="id_rate" name="fuel_consumption_rate" type="number" step="0.001" min="0.001"
-                       value="{{ form.fuel_consumption_rate.value|default:'' }}" required placeholder="e.g. 0.065">
-                <div class="hint">Not sure? Pick a preset below and we fill it in — you can fine-tune later.</div>
+                <label for="id_rate">Fuel consumption</label>
+                <div style="display:flex;gap:8px">
+                    <input id="id_rate" name="fuel_consumption_rate" type="number" step="0.001" min="0.001"
+                           value="{{ form.fuel_consumption_rate.value|default:'' }}" required placeholder="e.g. 0.065" style="flex:1">
+                    <select name="fuel_unit" style="width:130px;border:1px solid #D6DEE3;border-radius:6px;font-family:'Nunito Sans';font-size:13px">
+                        <option value="lpk">litres / km</option>
+                        <option value="kmpl">km / litre</option>
+                    </select>
+                </div>
+                <div class="hint">Think "my car does 12 km/L"? Choose km/litre and enter 12 — we convert.</div>
             </div>
             <div class="ch-field">
                 <label>Quick presets</label>
                 <div style="display:flex;gap:8px;flex-wrap:wrap">
-                    <button type="button" class="ch-btn ch-btn-ghost ch-btn-sm" onclick="preset('Toyota Corolla', 0.065)">Corolla (0.065)</button>
-                    <button type="button" class="ch-btn ch-btn-ghost ch-btn-sm" onclick="preset('Honda Civic', 0.068)">Civic (0.068)</button>
-                    <button type="button" class="ch-btn ch-btn-ghost ch-btn-sm" onclick="preset('Toyota Camry', 0.075)">Camry (0.075)</button>
-                    <button type="button" class="ch-btn ch-btn-ghost ch-btn-sm" onclick="preset('Lexus RX', 0.095)">Lexus (0.095)</button>
-                    <button type="button" class="ch-btn ch-btn-ghost ch-btn-sm" onclick="preset('Toyota Hiace (bus)', 0.130)">Hiace (0.130)</button>
-                    <button type="button" class="ch-btn ch-btn-ghost ch-btn-sm" onclick="preset('Motorcycle', 0.020)">Bike (0.020)</button>
+                    <button type="button" class="ch-btn ch-btn-ghost ch-btn-sm" onclick="preset('Toyota Corolla', 12.0, 'kmpl')">Corolla (12 km/L)</button>
+                    <button type="button" class="ch-btn ch-btn-ghost ch-btn-sm" onclick="preset('Honda Civic', 11.5, 'kmpl')">Civic (11.5 km/L)</button>
+                    <button type="button" class="ch-btn ch-btn-ghost ch-btn-sm" onclick="preset('Toyota Camry', 10.5, 'kmpl')">Camry (10.5 km/L)</button>
+                    <button type="button" class="ch-btn ch-btn-ghost ch-btn-sm" onclick="preset('Lexus RX', 8.5, 'kmpl')">Lexus (8.5 km/L)</button>
+                    <button type="button" class="ch-btn ch-btn-ghost ch-btn-sm" onclick="preset('Toyota Hiace (bus)', 5.5, 'kmpl')">Hiace (5.5 km/L)</button>
+                    <button type="button" class="ch-btn ch-btn-ghost ch-btn-sm" onclick="preset('Motorcycle', 25.0, 'kmpl')">Bike (25 km/L)</button>
                 </div>
             </div>
             <div style="display:flex;justify-content:space-between;margin-top:18px">
@@ -67,9 +73,11 @@
 
     {% include "partials/footer.html" %}
     <script>
-        function preset(name, rate) {
+        function preset(name, rate, unit) {
             document.getElementById("id_name").value = name;
             document.getElementById("id_rate").value = rate;
+            const sel = document.querySelector('select[name="fuel_unit"]');
+            if (sel) sel.value = unit;
         }
     </script>
 </body>

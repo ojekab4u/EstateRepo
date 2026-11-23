@@ -17,6 +17,7 @@ from django.urls import reverse_lazy
 from django.contrib import messages
 from .models import Property, UserLocation, Vehicle
 from . import geo
+from . import engine
 from .utils import( get_distance_matrix,
                    get_distance_matrix_with_place_id,
                    get_geocode,
@@ -394,7 +395,9 @@ def property_create(request):
     
 @login_required
 def add_vehicle(request):
-    form = VehicleForm(request.POST or None)
+    data = request.POST.copy()
+    _apply_fuel_unit(data)
+    form = VehicleForm(data or None)
     if request.method == 'POST' and form.is_valid():
         vehicle = form.save(commit=False)
         vehicle.user = request.user
@@ -409,12 +412,24 @@ def edit_vehicle(request, pk):
     vehicle = get_object_or_404(Vehicle, pk=pk)
     if vehicle.user != request.user:
         raise Http404("Vehicle not found")
-    form = VehicleForm(request.POST or None, instance=vehicle)
+    data = request.POST.copy()
+    _apply_fuel_unit(data)
+    form = VehicleForm(data or None, instance=vehicle)
     if request.method == 'POST' and form.is_valid():
         form.save()
         messages.success(request, 'Vehicle updated.')
         return redirect('vehicle_list')
     return render(request, 'vehicle_form.html', {'form': form, 'editing': True, 'vehicle': vehicle})
+
+
+def _apply_fuel_unit(data):
+    """Users think in km/L ("my car does 12"); we store litres/km."""
+    if data.get('fuel_unit') == 'kmpl':
+        try:
+            kmpl = float(data.get('fuel_consumption_rate') or 0)
+            data['fuel_consumption_rate'] = str(round(1 / kmpl, 6)) if kmpl else ''
+        except (TypeError, ValueError, ZeroDivisionError):
+            data['fuel_consumption_rate'] = ''
 
 
 @login_required
@@ -568,241 +583,237 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from decimal import Decimal, InvalidOperation
-from .models import Property, Vehicle, HistoricalData, FuelPrice, EstimateProfile
+from .models import Property, Vehicle, HistoricalData, FuelPrice, EstimateProfile, ProfileTrip, ProfilePlace
 from .utils import get_place_id, get_route_distance_from_place_ids
 
 logger = logging.getLogger(__name__)
 
+
 @login_required
 def cost_estimation_detail(request, property_id):
+    """Personal estimate: the user's saved trips applied to one property."""
     property = get_object_or_404(Property, pk=property_id)
-    google_api_key = settings.GOOGLE_API_KEY
     user = request.user
-    vehicles = Vehicle.objects.filter(user=user)    
-    
-    # Geocode the property address to get lat/lng (cached; free OSM provider by default).
-    # Properties with stored coords skip geocoding entirely.
-    property_address = f"{property.address}, {property.city}, {property.state}, {property.zip_code}"
-    if property.latitude is not None and property.longitude is not None:
-        property_lat_lng = {"lat": property.latitude, "lng": property.longitude, "display": ""}
-    else:
-        property_lat_lng = geo.geocode(property_address)
 
-    if request.user.is_agent:
-        messages.info(request, "Agents are not allowed to use estimator")
-        return redirect('index')  # Redirect agents to a different page as per your logic
+    if user.is_agent:
+        messages.info(request, "Estimation is for house-hunters — agents manage listings.")
+        return redirect('index')
 
-    house_lat = property_lat_lng['lat'] if property_lat_lng else None
-    house_lng = property_lat_lng['lng'] if property_lat_lng else None
+    profile = EstimateProfile.for_user(user)
+    trips = (ProfileTrip.objects.filter(user=user)
+             .select_related('place', 'vehicle'))
 
     if request.method == 'POST':
-        num_cars = int(request.POST.get('num_cars', 1))  # Default to 1 if not provided
-        car_details = []
-
-        # Collect details for each car
-        for i in range(1, num_cars + 1):
-            vehicle_id = request.POST.get(f'vehicle_{i}')
-            work_location = request.POST.get(f'work_location_{i}')
-            work_trips_per_week = int(request.POST.get(f'work_trips_per_week_{i}', 5))  # Default to 5 trips/week
-            other_locations = []
-
-            # Collect other locations for each car
-            j = 0
-            while True:
-                location_name = request.POST.get(f'location_name_{i}_{j}')
-                if not location_name:
-                    break
-                location_address = request.POST.get(f'location_address_{i}_{j}')
-                trips_per_week = int(request.POST.get(f'location_trips_per_week_{i}_{j}', 0))
-                other_locations.append({
-                    'name': location_name,
-                    'address': location_address,
-                    'trips_per_week': trips_per_week
-                })
-                j += 1
-
-            car_details.append({
-                'vehicle_id': vehicle_id,
-                'work_location': work_location,
-                'work_trips_per_week': work_trips_per_week,
-                'other_locations': other_locations
-            })
-
-        # Ensure fuel price is valid
-        current_fuel_price = request.POST.get('current_fuel_price')
-        if not current_fuel_price:
-            # Personal profile first, then the admin-managed national price
-            _profile = EstimateProfile.for_user(user)
-            latest = _profile.fuel_price or FuelPrice.latest('petrol')
-            current_fuel_price = str(latest) if latest is not None else "0"
+        raw_fuel = request.POST.get('fuel_price') or ''
         try:
-            current_fuel_price = Decimal(current_fuel_price)
+            fuel_price = Decimal(raw_fuel) if raw_fuel else None
         except InvalidOperation:
-            return HttpResponse("Invalid fuel price. Please enter a valid number.")
+            messages.error(request, "Fuel price must be a number.")
+            return redirect('cost_estimation_detail', property.pk)
 
-        # Initialize total distance for all vehicles
-        total_distance_all_vehicles_yearly = Decimal(0)
-        # Initialize individual vehicle distance mapping
-        vehicle_distances = {}
-        vehicle_summaries = []
-        total_transportation_cost = Decimal(0)
+        if fuel_price is None:
+            fuel_price = profile.fuel_price or FuelPrice.latest('petrol')
+        if fuel_price is None:
+            messages.error(request, "No fuel price available — enter one to estimate.")
+            return redirect('cost_estimation_detail', property.pk)
 
-        # Rent is fixed for the whole estimate — compute once before the vehicle loop
-        rent_weekly = property.price / 52
-        rent_monthly = property.price / 12
-        rent_yearly = property.price
+        if not trips.exists():
+            messages.info(request, "Add at least one regular trip to your profile first.")
+            return redirect('commute_profile')
 
-        # Iterate over each car's details
-        for car in car_details:
-            vehicle = get_object_or_404(Vehicle, pk=car['vehicle_id'])
-            fuel_consumption_rate = Decimal(vehicle.fuel_consumption_rate)
-            work_trips_per_week = car['work_trips_per_week']
-            work_round_trips_per_year = work_trips_per_week * 52  # Multiply by 52 for yearly calculation
+        result = engine.estimate_for_property(user, property, fuel_price)
 
-            property_coords = (house_lat, house_lng) if house_lat is not None else None
-            work_coords = geo.geocode(car['work_location'])
-            work_coords = (work_coords['lat'], work_coords['lng']) if work_coords else None
+        rent_yearly = property.price if isinstance(property.price, Decimal) else Decimal(str(property.price))
+        rent_monthly = rent_yearly / 12
+        rent_weekly = rent_yearly / 52
+        total_transport = result['total_transport']
+        effective_yearly = rent_yearly + total_transport
 
-            total_distance_for_vehicle = Decimal(0)
+        # Snapshot — editing the profile later never changes this saved number
+        snapshot = {
+            'fuel_price': str(fuel_price),
+            'geo_provider': settings.GEO_PROVIDER,
+            'trips': [
+                {k: (str(v) if isinstance(v, Decimal) else v)
+                 for k, v in trip.items()} for trip in result['trips']
+            ],
+        }
+        vehicle_names = sorted({t['vehicle'] for t in result['trips'] if not t.get('skipped')})
+        HistoricalData.objects.create(
+            user=user,
+            property=property,
+            vehicle_name=(vehicle_names[0] if len(vehicle_names) == 1
+                          else f"Household ({len(vehicle_names)} vehicles)"),
+            work_location=f"{len(result['trips'])} regular trips",
+            work_trips_per_week=sum(
+                t['trips_per_week'] for t in result['trips'] if not t.get('skipped')),
+            other_locations=json.dumps(snapshot),
+            total_distance=sum(
+                (t['annual_km'] for t in result['trips'] if not t.get('skipped')),
+                Decimal('0')),
+            transportation_cost=total_transport,
+            total_effective_cost=effective_yearly,
+        )
 
-
-            # Calculate round-trip distance for work location
-            work_distance_one_way = geo.route_distance_km(property_coords, work_coords)
-            work_distance_in_kilometers = Decimal(str(work_distance_one_way)) * 2 if work_distance_one_way else Decimal(0)
-            total_work_distance = work_distance_in_kilometers * Decimal(work_round_trips_per_year)
-            total_distance_for_vehicle += total_work_distance
-
-            # Calculate round-trip distance for other locations
-            for location in car['other_locations']:
-                loc_coords = geo.geocode(location['address'])
-                loc_coords = (loc_coords['lat'], loc_coords['lng']) if loc_coords else None
-                distance_one_way = geo.route_distance_km(property_coords, loc_coords)
-                distance_in_kilometers = Decimal(str(distance_one_way)) * 2 if distance_one_way else Decimal(0)
-                trips_per_week = location['trips_per_week']
-                total_distance_for_vehicle += distance_in_kilometers * Decimal(trips_per_week * 52)
-                
-            # total_distance_for_vehicle_to_Other_place = total_distance_for_vehicle
-                
-            vehicle_distances[vehicle.name] = total_distance_for_vehicle
-
-            # Add the yearly distance for this vehicle to the total distance across all vehicles
-            total_distance_all_vehicles_yearly += total_distance_for_vehicle
-            # total_distance_all_vehicles_work_and_other_place_yearly = total_distance_for_vehicle_to_Other_place + total_distance_for_vehicle_to_work
-
-            
-            vehicle_distances[vehicle.name] = {
-                'weekly': total_distance_for_vehicle / 52,
-                'monthly': total_distance_for_vehicle / 12,
-                'yearly': total_distance_for_vehicle
-            }
-
-            # Split the distance for weekly, monthly, and yearly
-            vehicle_summary = {
-                'vehicle_name': vehicle.name,
-                'total_distance_weekly': total_distance_for_vehicle / 52,
-                'total_distance_monthly': total_distance_for_vehicle / 12,
-                'total_distance_yearly': total_distance_for_vehicle,
-                'weekly_estimate': total_distance_for_vehicle / 52 * fuel_consumption_rate * current_fuel_price,
-                'monthly_estimate': total_distance_for_vehicle / 12 * fuel_consumption_rate * current_fuel_price,
-                'yearly_estimate': total_distance_for_vehicle * fuel_consumption_rate * current_fuel_price
-            }
-
-            vehicle_summaries.append(vehicle_summary)
-            total_transportation_cost += vehicle_summary['yearly_estimate']
-
-            # Persist the estimate (activates the dormant HistoricalData model —
-            # previously results were never saved anywhere)
-            profile = {
-                'fuel_price': str(current_fuel_price),
-                'work_trips_per_week': car['work_trips_per_week'],
-                'other_locations': car['other_locations'],
-                'geo_provider': settings.GEO_PROVIDER,
-            }
-            HistoricalData.objects.create(
-                user=user,
-                property=property,
-                vehicle_name=vehicle.name,
-                work_location=car['work_location'],
-                work_trips_per_week=car['work_trips_per_week'],
-                other_locations=json.dumps(profile),
-                total_distance=total_distance_for_vehicle,
-                transportation_cost=vehicle_summary['yearly_estimate'],
-                total_effective_cost=rent_yearly + vehicle_summary['yearly_estimate'],
-            )
-
-        # Rent already computed above (rent_weekly / rent_monthly / rent_yearly)
-
-        
-        
-        
-        for vehicle_name, distance in vehicle_distances.items():
-            if vehicle_name:
-                print(f"Total Distance Covered by {vehicle_name}: {distance} km")
-        total_distance_covered_ForALL = sum(distance['yearly'] for distance in vehicle_distances.values())
-        print(f"Total Distance Covered by all Vehicles: {total_distance_covered_ForALL} km")
-        print(f"Total Transportation Cost for all Vehicles: {total_transportation_cost}")
-        
-        yearly_distance_for_vehicle = total_distance_covered_ForALL
-        weekly_distance_for_vehicle = yearly_distance_for_vehicle / 52 
-        monthly_distance_for_vehicle = yearly_distance_for_vehicle/12 
-        
-        
-        # Final_total_transportation_cost = total_distance_covered_ForALL*fuel_consumption_rate * current_fuel_price
-        
-        total_transportation_cost_yearly = total_transportation_cost
-        total_transportation_cost_monthly = total_transportation_cost/12
-        total_transportation_cost_weekly = total_transportation_cost/52
-        
-        # Calculate effective cost (rent + transportation)
-        effective_cost_weekly = rent_weekly + total_transportation_cost_weekly
-        effective_cost_monthly = rent_monthly + total_transportation_cost_monthly
-        effective_cost_yearly = rent_yearly +total_transportation_cost_yearly
-        
-        # Prepare the context for the template
         context = {
             'property': property,
-            'vehicle_summaries': vehicle_summaries,
-            'rent_weekly': rent_weekly,
-            'rent_monthly': rent_monthly,
+            'result': result,
+            'fuel_price': fuel_price,
+            'trips': trips,
             'rent_yearly': rent_yearly,
-            'effective_cost_weekly': effective_cost_weekly,
-            'effective_cost_monthly': effective_cost_monthly,
-            'effective_cost_yearly': effective_cost_yearly,
-            'total_transportation_cost_yearly': total_transportation_cost_yearly,
-            'total_transportation_cost_monthly': total_transportation_cost_monthly,
-            'total_transportation_cost_weekly':  total_transportation_cost_weekly,
-            'weekly_distance_for_vehicle': weekly_distance_for_vehicle,
-            'monthly_distance_for_vehicle': monthly_distance_for_vehicle,
-            'yearly_distance_for_vehicle': total_distance_covered_ForALL,
-            'vehicle_distances': vehicle_distances  
+            'rent_monthly': rent_monthly,
+            'rent_weekly': rent_weekly,
+            'total_transport': total_transport,
+            'effective_yearly': effective_yearly,
+            'effective_monthly': effective_yearly / 12,
+            'effective_weekly': effective_yearly / 52,
+            'total_transport_monthly': total_transport / 12,
+            'total_transport_weekly': total_transport / 52,
         }
-
-        # print(f"Vehicle: {vehicle.name}")
-        # print(f"Total Work Distance (Yearly): {total_work_distance}")
-        # print(f"Total Distance (Yearly) for Vehicle: {total_distance_for_vehicle}")
-        # print(f"Work Place ID: {work_place_id}")
-        # print(f"Work Distance (in km): {work_distance_in_kilometers}")
         return render(request, 'cost_estimation_detail.html', context)
 
-    # Provide initial context when loading the page
-    profile = EstimateProfile.for_user(user)
+    # GET
+    default_fuel = profile.fuel_price or FuelPrice.latest('petrol') or ""
     context = {
         'property': property,
-        'vehicles': vehicles,
-        'house_lat': house_lat,
-        'house_lng': house_lng,
-        'google_api_key': settings.GOOGLE_API_KEY,
-        'default_fuel_price': profile.fuel_price or FuelPrice.latest('petrol') or "",
-        'profile_work_location': profile.work_location,
-        'profile_trips': profile.work_trips_per_week or 10,
-        'has_profile': bool(profile.work_location or profile.work_trips_per_week),
+        'trips': trips,
+        'vehicle_count': Vehicle.objects.filter(user=user).count(),
+        'default_fuel_price': default_fuel,
+        'has_trips': trips.exists(),
     }
-
     return render(request, 'cost_estimation_detail.html', context)
 
 
+@login_required
+def trip_list(request):
+    """Profile hub: the user's regular trips (place, vehicle, frequency)."""
+    profile = EstimateProfile.for_user(request.user)
+
+    # One-time migration: turn the old profile fields into a real trip
+    if (not ProfileTrip.objects.filter(user=request.user).exists()
+            and profile.work_location):
+        vehicle = Vehicle.objects.filter(user=request.user).first()
+        if vehicle:
+            place, _ = ProfilePlace.objects.get_or_create(
+                user=request.user, label='Work',
+                defaults={'address': profile.work_location})
+            ProfileTrip.objects.create(
+                user=request.user, place=place, vehicle=vehicle,
+                return_trips_per_week=profile.work_trips_per_week or 10)
+            messages.info(request, 'Your saved work route is now a regular trip.')
+
+    if request.method == 'POST' and request.POST.get('action') == 'fuel':
+        raw = request.POST.get('fuel_price') or ''
+        try:
+            profile.fuel_price = Decimal(raw) if raw else None
+        except InvalidOperation:
+            messages.error(request, 'Fuel price must be a number.')
+            return redirect('commute_profile')
+        profile.save()
+        messages.success(request, 'Fuel price saved.')
+        return redirect('commute_profile')
+
+    trips = (ProfileTrip.objects.filter(user=request.user)
+             .select_related('place', 'vehicle'))
+    context = {
+        'trips': trips,
+        'vehicle_count': Vehicle.objects.filter(user=request.user).count(),
+        'profile': profile,
+        'latest_petrol': FuelPrice.latest('petrol'),
+    }
+    return render(request, 'commute_profile.html', context)
 
 
+@login_required
+def trip_add(request):
+    if request.method == 'POST':
+        label = (request.POST.get('label') or '').strip() or 'Place'
+        address = (request.POST.get('address') or '').strip()
+        trips_per_week = request.POST.get('return_trips_per_week') or '1'
+        vehicle_id = request.POST.get('vehicle')
+        if not address:
+            messages.error(request, 'An address is required.')
+            return redirect('trip_add')
+        try:
+            trips_per_week = int(trips_per_week)
+        except ValueError:
+            messages.error(request, 'Trips per week must be a whole number.')
+            return redirect('trip_add')
+        vehicle = Vehicle.objects.filter(user=request.user, pk=vehicle_id).first()
+        if not vehicle:
+            messages.error(request, 'Pick one of your vehicles (add one first if needed).')
+            return redirect('trip_add')
+
+        place, _ = ProfilePlace.objects.get_or_create(
+            user=request.user, label=label,
+            defaults={'address': address})
+        if place.address != address:
+            place.address = address
+        if place.coords() is None:
+            g = geo.geocode(address)
+            if g:
+                place.latitude, place.longitude = g['lat'], g['lng']
+        place.save()
+        ProfileTrip.objects.create(
+            user=request.user, place=place, vehicle=vehicle,
+            return_trips_per_week=trips_per_week)
+        messages.success(request, f'Trip saved: {label}.')
+        return redirect('commute_profile')
+
+    context = {
+        'vehicles': Vehicle.objects.filter(user=request.user),
+        'places': ProfilePlace.objects.filter(user=request.user),
+    }
+    return render(request, 'trip_form.html', {'editing': False})
 
 
+@login_required
+def trip_edit(request, pk):
+    trip = get_object_or_404(ProfileTrip, pk=pk)
+    if trip.user != request.user:
+        raise Http404('Trip not found')
+    if request.method == 'POST':
+        label = (request.POST.get('label') or '').strip() or trip.place.label
+        address = (request.POST.get('address') or '').strip()
+        vehicle_id = request.POST.get('vehicle')
+        try:
+            trip.return_trips_per_week = int(request.POST.get('return_trips_per_week') or 1)
+        except ValueError:
+            trip.return_trips_per_week = 1
+        vehicle = Vehicle.objects.filter(user=request.user, pk=vehicle_id).first()
+        if not vehicle:
+            messages.error(request, 'Pick one of your vehicles.')
+            return redirect('trip_edit', pk)
+        if address and address != trip.place.address:
+            trip.place.address = address
+            g = geo.geocode(address)
+            trip.place.latitude = g['lat'] if g else None
+            trip.place.longitude = g['lng'] if g else None
+        trip.place.label = label
+        trip.place.save()
+        trip.vehicle = vehicle
+        trip.save()
+        messages.success(request, 'Trip updated.')
+        return redirect('commute_profile')
 
+    context = {
+        'trip': trip,
+        'editing': True,
+        'vehicles': Vehicle.objects.filter(user=request.user),
+    }
+    return render(request, 'trip_form.html', context)
+
+
+@login_required
+def trip_delete(request, pk):
+    trip = get_object_or_404(ProfileTrip, pk=pk)
+    if trip.user != request.user:
+        raise Http404('Trip not found')
+    if request.method == 'POST':
+        label = trip.place.label
+        trip.delete()
+        if not ProfileTrip.objects.filter(place=trip.place).exists():
+            trip.place.delete()
+        messages.success(request, f'Trip removed: {label}.')
+        return redirect('commute_profile')
+    return render(request, 'trip_delete_confirm.html', {'trip': trip})

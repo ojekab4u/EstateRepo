@@ -185,10 +185,50 @@ class EstimateProfile(models.Model):
 class Vehicle(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
-    fuel_consumption_rate = models.FloatField()  # e.g., liters per kilometer
+    fuel_consumption_rate = models.FloatField()  # canonical: litres per km
+    # Nigerian habit: users think "my car does 12 km/L" — the form accepts
+    # that and converts on save (form `unit` field drives it).
 
     def __str__(self):
         return self.name
+
+
+class ProfilePlace(models.Model):
+    """A location the user visits regularly (Work, Market, Church…)."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='places')
+    label = models.CharField(max_length=100)
+    address = models.CharField(max_length=255)
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ('user', 'label')
+        ordering = ['label']
+
+    def __str__(self):
+        return f"{self.label} ({self.user.username})"
+
+    def coords(self):
+        if self.latitude is not None and self.longitude is not None:
+            return (self.latitude, self.longitude)
+        return None
+
+
+class ProfileTrip(models.Model):
+    """One regular journey: a place, the vehicle used for it, and how often
+    the household goes there and back each week. The estimate engine sums
+    every trip for a property. Same place twice with different vehicles =
+    household members sharing the journeys."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='trips')
+    place = models.ForeignKey(ProfilePlace, on_delete=models.CASCADE, related_name='trips')
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, related_name='trips')
+    return_trips_per_week = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        ordering = ['place__label']
+
+    def __str__(self):
+        return f"{self.place.label} × {self.vehicle.name} ({self.return_trips_per_week}/wk)"
 
 '''
 
