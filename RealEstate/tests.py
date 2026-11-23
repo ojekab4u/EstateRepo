@@ -14,7 +14,7 @@ from django.test import TestCase
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 
-from .models import User, Property, Vehicle, HistoricalData
+from .models import User, Property, Vehicle, HistoricalData, EstimateProfile
 
 
 def _tiny_image():
@@ -242,3 +242,57 @@ class PricingEngineTests(BaseTest):
         r = self.client.get(reverse("property_detail", args=[self.property_.pk]))
         self.assertEqual(r.status_code, 200)
         self.assertNotIn(b"nominatim.openstreetmap.org", r.content)
+
+
+class ProfileFlowTests(BaseTest):
+    def test_profile_page_requires_login(self):
+        r = self.client.get(reverse("commute_profile"))
+        self.assertEqual(r.status_code, 302)
+        self.assertIn("/login", r.url)
+
+    def test_profile_save_and_reuse(self):
+        self.client.login(username="cust1", password="Passw0rd!23")
+        r = self.client.post(reverse("commute_profile"), {
+            "fuel_price": "998", "work_location": "Ring Road, Ibadan",
+            "work_trips_per_week": "10"})
+        self.assertEqual(r.status_code, 302)  # save-and-redirect
+        profile = EstimateProfile.objects.get(user=self.customer)
+        self.assertEqual(profile.work_location, "Ring Road, Ibadan")
+        self.assertEqual(profile.fuel_price, Decimal("998"))
+
+        # Estimator GET prefills from the profile
+        r = self.client.get(reverse("cost_estimation_detail", args=[self.property_.pk]))
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, "Ring Road, Ibadan")
+
+    def test_estimator_fuel_falls_back_to_profile(self):
+        EstimateProfile.objects.create(
+            user=self.customer, fuel_price=Decimal("998"),
+            work_location="Ring Road, Ibadan", work_trips_per_week=10)
+        self.client.login(username="cust1", password="Passw0rd!23")
+        with patch("RealEstate.views.geo.geocode",
+                   return_value={"lat": 7.39, "lng": 3.91, "display": "T"}), \
+             patch("RealEstate.views.geo.route_distance_km", return_value=5.0):
+            r = self.client.post(
+                reverse("cost_estimation_detail", args=[self.property_.pk]),
+                {"num_cars": "1", "vehicle_1": str(self.vehicle.pk),
+                 "work_location_1": "Ring Road, Ibadan", "work_trips_per_week_1": "10"})
+        self.assertEqual(r.status_code, 200)
+        row = HistoricalData.objects.filter(user=self.customer).latest("id")
+        self.assertEqual(row.transportation_cost, Decimal("352892.80"))  # 5200 km × 0.068 × 998
+
+    def test_cards_show_no_true_cost_badge(self):
+        """True cost is personal — cards must never present a generic verdict."""
+        from .models import FuelPrice
+        from django.utils import timezone as tz
+        FuelPrice.objects.create(fuel_type="petrol", price_per_litre=Decimal("998"),
+                                 effective_date=tz.now().date())
+        self.property_.compute_true_cost()
+        r = self.client.get(reverse("property_list"))
+        self.assertNotContains(r, "True cost/yr")
+
+    def test_detail_cta_is_personal(self):
+        self.client.login(username="cust1", password="Passw0rd!23")
+        r = self.client.get(reverse("property_detail", args=[self.property_.pk]))
+        self.assertContains(r, "Estimate this home's cost for me")
+        self.assertNotContains(r, "Just Book!")

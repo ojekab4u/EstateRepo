@@ -32,6 +32,7 @@ urlpatterns = [
 
     # Customer workspace
     path('my/estimates/', views.my_estimates, name='my_estimates'),
+    path('my/profile/', views.commute_profile, name='commute_profile'),
 
     # Vehicles (customers)
     path('addvehicle/', views.add_vehicle, name='add_vehicle'),

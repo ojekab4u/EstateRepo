@@ -1,0 +1,62 @@
+{% load static %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Commute Profile — ComfyHome</title>
+    <link rel="icon" type="image/png" href="{% static 'images/fav.png' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/comfyhome.css' %}">
+    <style>
+        .ch-panel{background:#fff;border-radius:8px;box-shadow:var(--ch-shadow);padding:24px;max-width:640px;margin:16px auto 40px}
+        .ch-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+        @media (max-width:640px){.ch-grid{grid-template-columns:1fr}}
+        .ch-note{border-left:4px solid var(--ch-coral);background:#FEF3F1;padding:10px 14px;border-radius:0 6px 6px 0;font-size:12px;color:var(--ch-coral-dark);margin-bottom:16px}
+    </style>
+</head>
+<body>
+    {% include "partials/nav.html" %}
+
+    <div class="ch-band">
+        <h1>My Commute Profile</h1>
+        <div class="crumb">the cost of a home depends on <b>your</b> life — vehicles, trips, fuel. Save it once, estimate any property in one tap.</div>
+    </div>
+
+    <div class="ch-panel">
+        {% if messages %}{% for message in messages %}<div class="ch-note {{ message.tags }}">{{ message }}</div>{% endfor %}{% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="ch-grid">
+                <div class="ch-field">
+                    <label for="id_fuel">Current fuel price (₦/litre)</label>
+                    <input id="id_fuel" name="fuel_price" type="number" step="0.01" min="0" value="{{ profile.fuel_price|default:'' }}" placeholder="e.g. 998">
+                    <div class="hint">left blank → we use the national average ({{ latest_petrol|default:'set in admin' }})</div>
+                </div>
+                <div class="ch-field">
+                    <label for="id_trips">Work trips per week</label>
+                    <input id="id_trips" name="work_trips_per_week" type="number" min="1" value="{{ profile.work_trips_per_week|default:'' }}" placeholder="e.g. 10 (2/day)">
+                </div>
+            </div>
+            <div class="ch-field">
+                <label for="id_work">Main destination (work / school / business)</label>
+                <input id="id_work" name="work_location" value="{{ profile.work_location }}" placeholder="📍 e.g. Ring Road Commercial Hub, Ibadan">
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;flex-wrap:wrap;gap:10px">
+                <a href="{% url 'vehicle_list' %}" class="ch-btn ch-btn-ghost ch-btn-sm">
+                    🚗 Manage vehicles ({{ vehicle_count }}) — yours, spouse, other members
+                </a>
+                <button type="submit" class="ch-btn ch-btn-coral">Save profile</button>
+            </div>
+        </form>
+        <div class="hint" style="margin-top:14px">
+            Used every time you run an estimate — and upcoming cost factors (electricity bill, service charges)
+            will plug into this same profile.
+        </div>
+    </div>
+
+    {% include "partials/footer.html" %}
+</body>
+</html>

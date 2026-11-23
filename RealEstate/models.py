@@ -159,6 +159,29 @@ class FuelPrice(models.Model):
         return row.price_per_litre if row else None
     
   
+class EstimateProfile(models.Model):
+    """A user's saved commute identity — makes estimates one-tap.
+
+    True cost is personal: it depends on THIS user's vehicles, destinations,
+    trips and fuel price (households may model several vehicles). The profile
+    is reused across every property's estimate and can grow with new cost
+    components (electricity etc.) later.
+    """
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='estimate_profile')
+    fuel_price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    work_location = models.CharField(max_length=255, blank=True)
+    work_trips_per_week = models.IntegerField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Commute profile — {self.user.username}"
+
+    @classmethod
+    def for_user(cls, user):
+        profile, _ = cls.objects.get_or_create(user=user)
+        return profile
+
+
 class Vehicle(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)

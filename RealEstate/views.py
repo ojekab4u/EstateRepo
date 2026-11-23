@@ -500,13 +500,51 @@ def my_estimates(request):
     return render(request, 'my_estimates.html', context)
 
 
+@login_required
+def commute_profile(request):
+    """The user's saved commute identity — powers one-tap estimates.
+    True cost is personal: vehicles (added separately), destinations,
+    trips and fuel price live here."""
+    profile = EstimateProfile.for_user(request.user)
+
+    if request.method == 'POST':
+        fuel = request.POST.get('fuel_price') or ''
+        profile.work_location = (request.POST.get('work_location') or '').strip()
+        trips = request.POST.get('work_trips_per_week') or ''
+        try:
+            profile.fuel_price = Decimal(fuel) if fuel else None
+        except InvalidOperation:
+            messages.error(request, "Fuel price must be a number.")
+            return redirect('commute_profile')
+        try:
+            profile.work_trips_per_week = int(trips) if trips else None
+        except ValueError:
+            messages.error(request, "Trips per week must be a whole number.")
+            return redirect('commute_profile')
+        profile.save()
+        messages.success(request, 'Profile saved — estimates are now one tap.')
+        return redirect('commute_profile')
+
+    if not profile.fuel_price:
+        latest = FuelPrice.latest('petrol')
+        if latest is not None:
+            profile.fuel_price = latest
+
+    context = {
+        'profile': profile,
+        'vehicle_count': Vehicle.objects.filter(user=request.user).count(),
+        'latest_petrol': FuelPrice.latest('petrol'),
+    }
+    return render(request, 'commute_profile.html', context)
+
+
 import json
 import logging
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from decimal import Decimal, InvalidOperation
-from .models import Property, Vehicle, HistoricalData, FuelPrice
+from .models import Property, Vehicle, HistoricalData, FuelPrice, EstimateProfile
 from .utils import get_place_id, get_route_distance_from_place_ids
 
 logger = logging.getLogger(__name__)
@@ -569,8 +607,9 @@ def cost_estimation_detail(request, property_id):
         # Ensure fuel price is valid
         current_fuel_price = request.POST.get('current_fuel_price')
         if not current_fuel_price:
-            # Fall back to the admin-managed national fuel price
-            latest = FuelPrice.latest('petrol')
+            # Personal profile first, then the admin-managed national price
+            _profile = EstimateProfile.for_user(user)
+            latest = _profile.fuel_price or FuelPrice.latest('petrol')
             current_fuel_price = str(latest) if latest is not None else "0"
         try:
             current_fuel_price = Decimal(current_fuel_price)
@@ -722,15 +761,19 @@ def cost_estimation_detail(request, property_id):
         return render(request, 'cost_estimation_detail.html', context)
 
     # Provide initial context when loading the page
+    profile = EstimateProfile.for_user(user)
     context = {
         'property': property,
         'vehicles': vehicles,
         'house_lat': house_lat,
         'house_lng': house_lng,
         'google_api_key': settings.GOOGLE_API_KEY,
-        'default_fuel_price': FuelPrice.latest('petrol') or "",
+        'default_fuel_price': profile.fuel_price or FuelPrice.latest('petrol') or "",
+        'profile_work_location': profile.work_location,
+        'profile_trips': profile.work_trips_per_week or 10,
+        'has_profile': bool(profile.work_location or profile.work_trips_per_week),
     }
-    
+
     return render(request, 'cost_estimation_detail.html', context)
 
 

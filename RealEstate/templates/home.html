@@ -102,12 +102,6 @@
                             <div class="price">₦{{ p.price|intcomma }}<small>/Year</small></div>
                             <div class="ttl">{{ p.title }}</div>
                         </div>
-                        {% if p.true_cost_yearly %}
-                        <div class="ch-tc {% if p.cost_tier == 'warn' %}warn{% elif p.cost_tier == 'trap' %}trap{% endif %}">
-                            <span class="l">True cost/yr</span>
-                            <span class="v">₦{{ p.true_cost_yearly|intcomma }}</span>
-                        </div>
-                        {% endif %}
                     </div>
                     <div class="feats">
                         <div class="f"><b>{{ p.bedrooms }}</b><span>Bedrooms</span></div>

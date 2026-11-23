@@ -138,21 +138,8 @@
                                 <div class="price">₦{{ p.price|intcomma }}<small>/Year</small></div>
                                 <div class="ttl">{{ p.title }}</div>
                             </div>
-                            {% if p.true_cost_yearly %}
-                            <div class="ch-tc {% if p.cost_tier == 'warn' %}warn{% elif p.cost_tier == 'trap' %}trap{% endif %}">
-                                <span class="l">True cost/yr</span>
-                                <span class="v">₦{{ p.true_cost_yearly|intcomma }}</span>
-                            </div>
-                            {% endif %}
                         </div>
-                        {% if p.transport_share_pct %}
-                        <div class="note">
-                            transport {{ p.transport_share_pct }}% of true cost
-                            {% if p.cost_tier == 'trap' %}· ⚠ cost trap{% elif p.cost_tier == 'ok' %}· ✓ efficient{% endif %}
-                        </div>
-                        {% else %}
-                        <div class="note">true cost pending — run an estimate</div>
-                        {% endif %}
+                        <div class="note">estimate this home's cost with <b>your</b> commute</div>
                         <div class="feats">
                             <div class="f"><b>{{ p.bedrooms }}</b><span>Bedrooms</span></div>
                             <div class="f"><b>{{ p.bathrooms }}</b><span>Bathrooms</span></div>

@@ -81,13 +81,19 @@
         <p><strong>Square Feet:</strong> {{ property.square_feet }}</p>
     </div>
     
-    <!-- Cost Estimation Link -->
+    <!-- Cost Estimation — the platform's distinguishing feature: personal, one tap -->
     <div class="cost-estimation-link">
-        <a href="{% url 'cost_estimation_detail' property.pk %}" class="btn btn-primary">View Cost Estimation</a>
-        <button 
-        {% comment %} type="submit" {% endcomment %}
-         class="btn btn-success">Just Book!
-        </button>
+        {% if user.is_authenticated and not user.is_agent %}
+            <a href="{% url 'cost_estimation_detail' property.pk %}" class="btn btn-primary">
+                ∫ Estimate this home's cost for me</a>
+            <a href="{% url 'commute_profile' %}" class="btn btn-outline-secondary">
+                🚗 My commute profile</a>
+        {% elif user.is_agent %}
+            <span class="text-muted">Estimation is for house-hunters — agents manage listings.</span>
+        {% else %}
+            <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-primary">
+                Log in to estimate what this home would cost you</a>
+        {% endif %}
     </div>
     <a href="{% url 'property_list' %}"> Go Back</a>
 </div>
