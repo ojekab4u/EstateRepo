@@ -58,7 +58,7 @@
     <!-- hero -->
     <section class="ch-hero">
         <div>
-            <div class="ch-eyebrow"><span class="h">🏠</span> True-Cost Real Estate Platform</div>
+            <div class="ch-eyebrow"><span class="h"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" style="vertical-align:-2px"><path d="m3 11 9-8 9 8"/><path d="M5 10v10h14V10"/></svg></span> True-Cost Real Estate Platform</div>
             <h1>Know The Real Cost Of A Home Before You Rent</h1>
             <p class="ch-lede">
                 Rent is only half the story. ComfyHome shows rent <b>+ commute + power</b> —
@@ -67,13 +67,19 @@
             </p>
             <a class="ch-btn ch-btn-coral" href="{% url 'property_list' %}">Start True-Cost Search</a>
         </div>
-        <div class="ch-illus">🏘️<small>every listing priced by its true cost of living</small></div>
+        <div class="ch-illus">
+            <svg width="180" height="180" viewBox="0 0 24 24" fill="none" stroke="#7E97A3" stroke-width="1">
+                <path d="m3 11 9-8 9 8" stroke="#FF5A3D"/><path d="M5 10v10h14V10"/>
+                <path d="M9 20v-6h6v6"/><path d="M9 14h6" stroke-width="1.2"/>
+            </svg>
+            <small>every listing, estimated with your commute</small>
+        </div>
     </section>
 
     <!-- orange search strip -->
     <form class="ch-searchstrip" method="GET" action="{% url 'property_list' %}">
         <input name="q" placeholder="Search Keyword — area, city, landmark (e.g. Bodija, Ibadan)">
-        <button type="submit" class="ch-btn ch-btn-coral">🔍 Search</button>
+        <button type="submit" class="ch-btn ch-btn-coral">Search</button>
     </form>
 
     <!-- live stats (real queries — no fabricated numbers) -->
@@ -93,8 +99,8 @@
             {% for p in featured %}
             <a class="ch-card" href="{% url 'property_detail' p.pk %}">
                 <div class="ph">
-                    {% if p.main_image %}<img src="{{ p.main_image.url }}" alt="{{ p.title }}" loading="lazy">{% else %}🏠{% endif %}
-                    <div class="loc"><span class="pin">📍</span> {{ p.address }}, {{ p.city }}</div>
+                    {% if p.main_image %}<img src="{{ p.main_image.url }}" alt="{{ p.title }}" loading="lazy">{% else %}{% endif %}
+                    <div class="loc"><span class="pin"></span> {{ p.address }}, {{ p.city }}</div>
                 </div>
                 <div class="bd">
                     <div class="ch-pricerow">
@@ -113,7 +119,7 @@
             {% endfor %}
         </div>
         <div class="ch-callout">
-            💡 <b>Why the cheapest rent isn't always cheapest:</b> a low-rent flat far from work can cost more per year
+            <b>Why the cheapest rent isn't always cheapest:</b> a low-rent flat far from work can cost more per year
             than a pricier one nearby. The badge on each card shows the full picture <i>before</i> you sign.
         </div>
     </section>
@@ -121,7 +127,7 @@
     <!-- how it works -->
     <section class="ch-sec" style="padding-top:6px">
         <div class="ch-sec-head">
-            <div class="eyebrow"><span class="h">∫</span> How It Works</div>
+            <div class="eyebrow"><span class="h"></span> How It Works</div>
             <h2>Three Steps To Your Real Budget</h2>
         </div>
         <div class="ch-steps">

@@ -36,7 +36,10 @@ urlpatterns = [
 
     # Vehicles (customers)
     path('addvehicle/', views.add_vehicle, name='add_vehicle'),
-    path('myvehicles/', views.vehicle_list, name='vehicle_list'),
+    path('my/vehicles/', views.vehicle_list, name='vehicle_list'),
+    path('myvehicles/', views.vehicle_list),  # legacy alias
+    path('my/vehicles/<int:pk>/edit/', views.edit_vehicle, name='edit_vehicle'),
+    path('my/vehicles/<int:pk>/delete/', views.delete_vehicle, name='delete_vehicle'),
 ]
 
 

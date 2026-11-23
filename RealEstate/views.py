@@ -394,16 +394,40 @@ def property_create(request):
     
 @login_required
 def add_vehicle(request):
+    form = VehicleForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        vehicle = form.save(commit=False)
+        vehicle.user = request.user
+        vehicle.save()
+        messages.success(request, 'Vehicle added.')
+        return redirect('vehicle_list')
+    return render(request, 'vehicle_form.html', {'form': form, 'editing': False})
+
+
+@login_required
+def edit_vehicle(request, pk):
+    vehicle = get_object_or_404(Vehicle, pk=pk)
+    if vehicle.user != request.user:
+        raise Http404("Vehicle not found")
+    form = VehicleForm(request.POST or None, instance=vehicle)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Vehicle updated.')
+        return redirect('vehicle_list')
+    return render(request, 'vehicle_form.html', {'form': form, 'editing': True, 'vehicle': vehicle})
+
+
+@login_required
+def delete_vehicle(request, pk):
+    vehicle = get_object_or_404(Vehicle, pk=pk)
+    if vehicle.user != request.user:
+        raise Http404("Vehicle not found")
     if request.method == 'POST':
-        form = VehicleForm(request.POST)
-        if form.is_valid():
-            vehicle = form.save(commit=False)
-            vehicle.user = request.user
-            vehicle.save()
-            return redirect('vehicle_list')
-    else:
-        form = VehicleForm()
-    return render(request, 'add_vehicle.html', {'form': form})
+        vehicle.delete()
+        messages.success(request, 'Vehicle removed.')
+        return redirect('vehicle_list')
+    used_in = HistoricalData.objects.filter(user=request.user, vehicle_name=vehicle.name).count()
+    return render(request, 'vehicle_delete_confirm.html', {'vehicle': vehicle, 'used_in': used_in})
 
 @login_required
 def vehicle_list(request):

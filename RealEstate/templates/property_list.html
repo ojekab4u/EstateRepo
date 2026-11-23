@@ -14,11 +14,11 @@
 <body>
     <!-- top contact strip -->
     <div class="ch-topbar">
-        <a href="mailto:info@comfyhome.com">✉ info@comfyhome.com</a>
-        <a>📍 15, Odo Ona Ibadan, Nigeria</a>
+        <a href="mailto:info@comfyhome.com">info@comfyhome.com</a>
+        <a>15, Odo Ona Ibadan, Nigeria</a>
         <span class="ch-cta">
             {% if user.is_authenticated and user.is_agent %}
-                <a class="ch-btn ch-btn-coral ch-btn-sm" href="{% url 'property_create_new' %}">＋ Add Listing</a>
+                <a class="ch-btn ch-btn-coral ch-btn-sm" href="{% url 'property_create_new' %}">+ Add Listing</a>
             {% else %}
                 <a class="ch-btn ch-btn-coral ch-btn-sm" href="{% url 'property_create_new' %}">Add Listing</a>
             {% endif %}
@@ -85,7 +85,7 @@
             <div class="ch-field">
                 <label for="id_maxtc">Max true cost (₦/yr)</label>
                 <input id="id_maxtc" name="max_true_cost" type="number" value="{{ max_true_cost }}" placeholder="e.g. 1500000">
-                <div class="hint">🆕 rent + estimated transport + power — the cost that matters</div>
+                <div class="hint">rent + estimated transport + power — the cost that matters</div>
             </div>
             <div class="ch-field">
                 <label>Bedrooms (min)</label>
@@ -129,8 +129,8 @@
                 {% for p in properties %}
                 <a class="ch-card" href="{% url 'property_detail' p.pk %}">
                     <div class="ph">
-                        {% if p.main_image %}<img src="{{ p.main_image.url }}" alt="{{ p.title }}" loading="lazy">{% else %}🏠{% endif %}
-                        <div class="loc"><span class="pin">📍</span> {{ p.address }}, {{ p.city }}</div>
+                        {% if p.main_image %}<img src="{{ p.main_image.url }}" alt="{{ p.title }}" loading="lazy">{% else %}{% endif %}
+                        <div class="loc"><span class="pin"></span> {{ p.address }}, {{ p.city }}</div>
                     </div>
                     <div class="bd">
                         <div class="ch-pricerow">
@@ -139,7 +139,7 @@
                                 <div class="ttl">{{ p.title }}</div>
                             </div>
                         </div>
-                        <div class="note">estimate this home's cost with <b>your</b> commute</div>
+                        <div class="note">see what this home would cost you</div>
                         <div class="feats">
                             <div class="f"><b>{{ p.bedrooms }}</b><span>Bedrooms</span></div>
                             <div class="f"><b>{{ p.bathrooms }}</b><span>Bathrooms</span></div>
@@ -149,7 +149,10 @@
                         <div class="pfoot">
                             <div class="av">{{ p.owner.first_name|default:"A"|slice:":1"|upper }}{{ p.owner.last_name|default:""|slice:":1"|upper }}</div>
                             <div><div class="an">{{ p.owner.get_full_name|default:p.owner.username }}</div></div>
-                            <span class="acts"><span class="ch-sq" title="Save">♡</span><span class="ch-sq" title="Compare">⇄</span></span>
+                            <span class="acts">
+                                <span class="ch-sq" title="Save" aria-label="Save"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 21C7 16.5 3 13 3 8.8 3 6 5.2 4 7.8 4c1.7 0 3.3.9 4.2 2.3C12.9 4.9 14.5 4 16.2 4 18.8 4 21 6 21 8.8c0 4.2-4 7.7-9 12.2z"/></svg></span>
+                                <span class="ch-sq" title="Compare" aria-label="Compare"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 16l-4-4 4-4M17 8l4 4-4 4M3 12h18"/></svg></span>
+                            </span>
                         </div>
                     </div>
                 </a>
@@ -173,7 +176,7 @@
     </div>
 
     <footer class="ch-footer">
-        <span class="brand">🏠 ComfyHome</span>
+        <span class="brand"> ComfyHome</span>
         <span class="muted">True-cost housing search for Nigeria · rent + commute + power = what a home really costs</span>
         <span class="muted">© 2026 ComfyHome</span>
     </footer>

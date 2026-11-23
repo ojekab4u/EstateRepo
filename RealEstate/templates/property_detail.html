@@ -85,9 +85,9 @@
     <div class="cost-estimation-link">
         {% if user.is_authenticated and not user.is_agent %}
             <a href="{% url 'cost_estimation_detail' property.pk %}" class="btn btn-primary">
-                ∫ Estimate this home's cost for me</a>
+                Estimate this home's cost for me</a>
             <a href="{% url 'commute_profile' %}" class="btn btn-outline-secondary">
-                🚗 My commute profile</a>
+                My commute profile</a>
         {% elif user.is_agent %}
             <span class="text-muted">Estimation is for house-hunters — agents manage listings.</span>
         {% else %}

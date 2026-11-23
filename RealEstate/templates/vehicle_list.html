@@ -1,26 +1,59 @@
 {% load static %}
+{% load humanize %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Vehicles</title>
-
-    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <title>My Vehicles — ComfyHome</title>
     <link rel="icon" type="image/png" href="{% static 'images/fav.png' %}">
- <!-- 
-    - custom css link
-  -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/comfyhome.css' %}">
+    <style>
+        .ch-vcards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+        @media (max-width:1000px){.ch-vcards{grid-template-columns:1fr}}
+        .ch-vc{background:#fff;border-radius:8px;box-shadow:var(--ch-shadow);padding:18px}
+        .ch-vc .name{font-family:'Poppins';font-weight:700;font-size:15px;color:var(--ch-navy)}
+        .ch-vc .rate{font-size:12px;color:var(--ch-cadet);margin-top:4px}
+        .ch-vc .actions{display:flex;gap:8px;margin-top:14px}
+        .ch-note{border-left:4px solid var(--ch-coral);background:#FEF3F1;padding:10px 14px;border-radius:0 6px 6px 0;font-size:12px;color:var(--ch-coral-dark);margin-bottom:16px}
+    </style>
 </head>
 <body>
     {% include "partials/nav.html" %}
-    <h1>My Vehicles</h1>
-    <ul>
-        {% for vehicle in vehicles %}
-        <li>{{ vehicle.name }} - Fuel Consumption Rate: {{ vehicle.fuel_consumption_rate }}</li>
-        {% endfor %}
-    </ul>
-    <a href="{% url 'add_vehicle' %}">Add Vehicle</a>
+
+    <div class="ch-band" style="display:flex;justify-content:space-between;align-items:flex-end">
+        <div>
+            <h1>My Vehicles</h1>
+            <div class="crumb">the vehicles your estimates run on — add every car your household would use</div>
+        </div>
+        <a href="{% url 'add_vehicle' %}" class="ch-btn ch-btn-coral ch-btn-sm">+ Add vehicle</a>
+    </div>
+
+    <div style="padding:14px 28px 40px">
+        {% if messages %}{% for message in messages %}<div class="ch-note">{{ message }}</div>{% endfor %}{% endif %}
+
+        {% if vehicles %}
+        <div class="ch-vcards">
+            {% for v in vehicles %}
+            <div class="ch-vc">
+                <div class="name">{{ v.name }}</div>
+                <div class="rate">{{ v.fuel_consumption_rate }} litres / km</div>
+                <div class="actions">
+                    <a href="{% url 'edit_vehicle' v.pk %}" class="ch-btn ch-btn-ghost ch-btn-sm">Edit</a>
+                    <a href="{% url 'delete_vehicle' v.pk %}" class="ch-btn ch-btn-ghost ch-btn-sm" style="color:var(--ch-trap);border-color:var(--ch-trap)">Remove</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="ch-empty">
+            No vehicles yet. Your estimate needs at least one —<br><br>
+            <a href="{% url 'add_vehicle' %}" class="ch-btn ch-btn-coral ch-btn-sm">Add your first vehicle</a>
+        </div>
+        {% endif %}
+    </div>
+
+    {% include "partials/footer.html" %}
 </body>
 </html>

@@ -296,3 +296,26 @@ class ProfileFlowTests(BaseTest):
         r = self.client.get(reverse("property_detail", args=[self.property_.pk]))
         self.assertContains(r, "Estimate this home's cost for me")
         self.assertNotContains(r, "Just Book!")
+
+    def test_vehicle_edit_owner_only(self):
+        self.client.login(username="cust1", password="Passw0rd!23")
+        r = self.client.post(reverse("edit_vehicle", args=[self.vehicle.pk]),
+                             {"name": "Kia Rio", "fuel_consumption_rate": "0.071"})
+        self.assertRedirects(r, reverse("vehicle_list"))
+        self.vehicle.refresh_from_db()
+        self.assertEqual(self.vehicle.name, "Kia Rio")
+
+    def test_vehicle_delete_flow(self):
+        self.client.login(username="cust1", password="Passw0rd!23")
+        r = self.client.get(reverse("delete_vehicle", args=[self.vehicle.pk]))
+        self.assertEqual(r.status_code, 200)  # confirmation page
+        r = self.client.post(reverse("delete_vehicle", args=[self.vehicle.pk]))
+        self.assertRedirects(r, reverse("vehicle_list"))
+        self.assertFalse(Vehicle.objects.filter(pk=self.vehicle.pk).exists())
+
+    def test_vehicle_edit_rejected_for_other_users(self):
+        other = User.objects.create_user(username="other1", email="o@x.com", password="Passw0rd!23")
+        other_vehicle = Vehicle.objects.create(user=other, name="Not Mine", fuel_consumption_rate=0.07)
+        self.client.login(username="cust1", password="Passw0rd!23")
+        r = self.client.get(reverse("edit_vehicle", args=[other_vehicle.pk]))
+        self.assertEqual(r.status_code, 404)

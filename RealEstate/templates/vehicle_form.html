@@ -1,0 +1,76 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if editing %}Edit{% else %}Add{% endif %} Vehicle — ComfyHome</title>
+    <link rel="icon" type="image/png" href="{% static 'images/fav.png' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/comfyhome.css' %}">
+    <style>
+        .ch-panel{background:#fff;border-radius:8px;box-shadow:var(--ch-shadow);padding:24px;max-width:560px;margin:16px auto 40px}
+        .ch-note{border-left:4px solid var(--ch-coral);background:#FEF3F1;padding:10px 14px;border-radius:0 6px 6px 0;font-size:12px;color:var(--ch-coral-dark);margin-bottom:16px}
+    </style>
+</head>
+<body>
+    {% include "partials/nav.html" %}
+
+    <div class="ch-band">
+        <h1>{% if editing %}Edit vehicle{% else %}Add a vehicle{% endif %}</h1>
+        <div class="crumb">fuel consumption (litres per kilometre) is what makes your estimate personal</div>
+    </div>
+
+    <div class="ch-panel">
+        {% if messages %}{% for message in messages %}<div class="ch-note">{{ message }}</div>{% endfor %}{% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="ch-field">
+                <label for="id_name">Vehicle name</label>
+                <input id="id_name" name="name" value="{{ form.name.value|default:'' }}" required
+                       placeholder="e.g. My Corolla, Wife's Kia, Family bus" list="presets" maxlength="100">
+                <datalist id="presets">
+                    <option value="Toyota Corolla"></option>
+                    <option value="Toyota Camry"></option>
+                    <option value="Honda Civic"></option>
+                    <option value="Kia Rio"></option>
+                    <option value="Lexus RX"></option>
+                    <option value="Toyota Hiace (bus)"></option>
+                    <option value="Motorcycle"></option>
+                </datalist>
+                {% for error in form.name.errors %}<div class="hint" style="color:var(--ch-trap)">{{ error }}</div>{% endfor %}
+            </div>
+            <div class="ch-field">
+                <label for="id_rate">Fuel consumption (litres per km)</label>
+                <input id="id_rate" name="fuel_consumption_rate" type="number" step="0.001" min="0.001"
+                       value="{{ form.fuel_consumption_rate.value|default:'' }}" required placeholder="e.g. 0.065">
+                <div class="hint">Not sure? Pick a preset below and we fill it in — you can fine-tune later.</div>
+            </div>
+            <div class="ch-field">
+                <label>Quick presets</label>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                    <button type="button" class="ch-btn ch-btn-ghost ch-btn-sm" onclick="preset('Toyota Corolla', 0.065)">Corolla (0.065)</button>
+                    <button type="button" class="ch-btn ch-btn-ghost ch-btn-sm" onclick="preset('Honda Civic', 0.068)">Civic (0.068)</button>
+                    <button type="button" class="ch-btn ch-btn-ghost ch-btn-sm" onclick="preset('Toyota Camry', 0.075)">Camry (0.075)</button>
+                    <button type="button" class="ch-btn ch-btn-ghost ch-btn-sm" onclick="preset('Lexus RX', 0.095)">Lexus (0.095)</button>
+                    <button type="button" class="ch-btn ch-btn-ghost ch-btn-sm" onclick="preset('Toyota Hiace (bus)', 0.130)">Hiace (0.130)</button>
+                    <button type="button" class="ch-btn ch-btn-ghost ch-btn-sm" onclick="preset('Motorcycle', 0.020)">Bike (0.020)</button>
+                </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:18px">
+                <a href="{% url 'vehicle_list' %}" class="ch-btn ch-btn-ghost ch-btn-sm">Cancel</a>
+                <button type="submit" class="ch-btn ch-btn-coral">{% if editing %}Save changes{% else %}Add vehicle{% endif %}</button>
+            </div>
+        </form>
+    </div>
+
+    {% include "partials/footer.html" %}
+    <script>
+        function preset(name, rate) {
+            document.getElementById("id_name").value = name;
+            document.getElementById("id_rate").value = rate;
+        }
+    </script>
+</body>
+</html>

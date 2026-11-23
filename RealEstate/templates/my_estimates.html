@@ -24,7 +24,7 @@
 
         {% if cheapest %}
         <div class="alert alert-success">
-            💚 Cheapest so far: <strong>{{ cheapest.property.title }}</strong> — true cost
+            Cheapest so far: <strong>{{ cheapest.property.title }}</strong> — true cost
             ₦{{ cheapest.total_effective_cost|floatformat:2|intcomma }}/yr
         </div>
         {% endif %}

@@ -80,10 +80,10 @@
 
                 <div class="ch-panel" style="opacity:.75">
                     <b class="t">3 · Power &amp; other bills</b>
-                    <div class="hint" style="margin-top:6px">⚡ Electricity, service charges and other recurring costs — <b>coming soon</b>. This panel will read from your profile, same as fuel.</div>
+                    <div class="hint" style="margin-top:6px">Electricity, service charges and other recurring costs — <b>coming soon</b>. This panel will read from your profile, same as fuel.</div>
                 </div>
 
-                <button type="submit" class="ch-btn ch-btn-coral" style="width:100%;justify-content:center">∫ Estimate my true cost</button>
+                <button type="submit" class="ch-btn ch-btn-coral" style="width:100%;justify-content:center">Estimate my true cost</button>
             </form>
         </div>
 
@@ -98,7 +98,7 @@
                 </div>
                 {% for v in vehicle_summaries %}
                 <div class="rrow" style="grid-template-columns:1.3fr 1fr 1fr 1fr">
-                    <span>🚗 {{ v.vehicle_name }}</span>
+                    <span>{{ v.vehicle_name }}</span>
                     <span class="num">₦{{ v.weekly_estimate|floatformat:0|intcomma }}</span>
                     <span class="num">₦{{ v.monthly_estimate|floatformat:0|intcomma }}</span>
                     <span class="num">₦{{ v.yearly_estimate|floatformat:0|intcomma }}</span>
@@ -134,7 +134,7 @@
                 </table>
 
                 <div class="ch-note-ok">
-                    💾 This estimate was saved to <a href="{% url 'my_estimates' %}" style="color:inherit">your saved estimates</a> —
+                    This estimate was saved to <a href="{% url 'my_estimates' %}" style="color:inherit">your saved estimates</a> —
                     it's <b>yours</b>: computed from your vehicles, trips and fuel price.
                 </div>
                 <div class="ch-note-grey">
@@ -150,7 +150,7 @@
                     Tip: <a href="{% url 'commute_profile' %}" style="color:var(--ch-coral);font-weight:800">save your commute profile</a> once — then every property's estimate is one tap.{% endif %}
                 </div>
                 {% if property.latitude %}
-                <div class="pill ok" style="margin-top:12px">📍 property located ({{ property.latitude|floatformat:3 }}, {{ property.longitude|floatformat:3 }})</div>
+                <div class="pill ok" style="margin-top:12px">property located ({{ property.latitude|floatformat:3 }}, {{ property.longitude|floatformat:3 }})</div>
                 {% endif %}
             </div>
             {% endif %}
@@ -181,7 +181,7 @@
                 </div></div>
                 <div class="grow"><div class="ch-field" style="margin:0">
                     <label>Main destination</label>
-                    <input name="work_location_${i}" value="${DEFAULT_WORK}" placeholder="📍 work address" required>
+                    <input name="work_location_${i}" value="${DEFAULT_WORK}" placeholder="work address" required>
                 </div></div>
                 <div class="w"><div class="ch-field" style="margin:0">
                     <label>Trips/wk</label>
@@ -205,7 +205,7 @@
                         <label>Stop name</label><input name="location_name_${i}_${j}" placeholder="e.g. Market, Church" required>
                     </div></div>
                     <div class="grow"><div class="ch-field" style="margin:0">
-                        <label>Address</label><input name="location_address_${i}_${j}" placeholder="📍 address" required>
+                        <label>Address</label><input name="location_address_${i}_${j}" placeholder="address" required>
                     </div></div>
                     <div class="w"><div class="ch-field" style="margin:0">
                         <label>Trips/wk</label><input name="location_trips_per_week_${i}_${j}" type="number" min="1" value="1" required>
