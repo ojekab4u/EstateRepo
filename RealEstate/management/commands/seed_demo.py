@@ -41,6 +41,15 @@ DEMO_USERS = {
 }
 DEMO_PASSWORD = "ComfyDemo2026!"
 
+# realistic street per area — seed addresses read like a human wrote them
+STREETS = {
+    "Akobo": "Akobo Road", "Agbowo (UI)": "Barika Street", "Bodija": "Awolowo Way",
+    "Ring Road": "Ring Road", "Moniya": "Ojoo–Ibadan Road", "Odo Ona": "Odo Ona Road",
+    "Challenge": "Challenge Road", "Dugbe": "Dugbe Market Road", "Jericho": "Jericho Road",
+    "Basorun": "Basorun Road", "Yaba": "Herbert Macaulay Way", "Surulere": "Adeniran Ogunsanya",
+    "Ikeja": "Allen Avenue", "Lekki Ph 1": "Admiralty Way", "Ajah": "Lekki–Epe Expressway",
+}
+
 # title, area, type(Apartment/House/Condo), beds, baths, sqft, price(₦/yr), description
 PROPERTIES = [
     ("2 Bedroom Flat", "Akobo", "Apartment", 2, 2, 300, 900_000,
@@ -152,6 +161,12 @@ class Command(BaseCommand):
         if demo_agent and Property.objects.filter(owner=demo_agent).exists() and not options["force"]:
             # Properties already seeded — still refresh the true-cost cache,
             # then skip the rest.
+            # repair legacy seed addresses ("Mini Road" etc.) in place
+            for title, area, *_ in PROPERTIES:
+                prop = Property.objects.filter(title=f"{title}, {area}").first()
+                if prop and prop.address != f"{STREETS[area]}, {area}":
+                    prop.address = f"{STREETS[area]}, {area}"
+                    prop.save(update_fields=["address"])
             recomputed = sum(1 for p in Property.objects.all() if p.compute_true_cost() is not None)
             self.stdout.write(f"Demo data already present — refreshed true-cost cache for "
                               f"{recomputed} property(ies) (use --force to re-seed everything).")
@@ -195,7 +210,7 @@ class Command(BaseCommand):
                 owner=agent,
                 defaults={
                     "description": desc,
-                    "address": f"{title.split()[0]} Road, {area}",
+                    "address": f"{STREETS[area]}, {area}",
                     "city": "Lagos" if zip_code == "101233" else "Ibadan",
                     "state": "Lagos" if zip_code == "101233" else "Oyo",
                     "zip_code": zip_code,

@@ -62,8 +62,7 @@
 .ch-chip-grey{background:#EDF1F3;color:var(--ch-cadet)}
 .ch-chip-blue{background:#F0F7FF;color:#1D4ED8}
 /* ---------- property card ---------- */
-.ch-cards{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-@media (max-width: 1200px){ .ch-cards{grid-template-columns:1fr} }
+.ch-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:20px}
 .ch-card{background:#fff;border-radius:var(--ch-radius);overflow:hidden;box-shadow:var(--ch-shadow);text-decoration:none;display:block}
 .ch-card .ph{height:170px;position:relative;display:grid;place-items:center;color:#fff;font-size:28px;background:linear-gradient(150deg,#1F4E5F,#0B2C3C)}
 .ch-card .ph img{width:100%;height:100%;object-fit:cover}
